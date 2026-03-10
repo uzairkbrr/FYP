@@ -1,0 +1,12 @@
+Total Parameters (GPT-2 Small / 124M)
+
+Total Params ≈
+(vocab_size × emb_dim) + (context_length × emb_dim) + n_layers × (4 × emb_dim^2 + 2 × (emb_dim × 4*emb_dim)) + 2 × emb_dim
+
+Where:
+vocab_size = 50257
+context_length = 1024
+emb_dim = 768
+n_layers = 12
+
+Approximate Total ≈ 124 million parameters
