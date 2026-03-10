@@ -1,0 +1,171 @@
+@import "tailwindcss";
+
+@theme {
+  --color-primary: #9b2c2c;
+  /* Burgundy Red */
+  --color-primary-dark: #7b2424;
+  --color-primary-light: #f7e8e8;
+  --color-surface: var(--surface);
+  --color-background: var(--background);
+  --color-border: var(--border);
+  --color-text-primary: var(--text-primary);
+  --color-text-secondary: var(--text-secondary);
+  --color-text-muted: var(--text-muted);
+  --color-success: #2f855a;
+  --color-error: #c53030;
+
+  --animate-bounce-subtle: bounce-subtle 2s infinite;
+  --animate-mic-pulse: mic-pulse 2s infinite;
+
+  @keyframes bounce-subtle {
+
+    0%,
+    100% {
+      transform: translateY(-5%);
+    }
+
+    50% {
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes mic-pulse {
+    0% {
+      box-shadow: 0 0 0 0 rgba(155, 44, 44, 0.4);
+    }
+
+    70% {
+      box-shadow: 0 0 0 15px rgba(155, 44, 44, 0);
+    }
+
+    100% {
+      box-shadow: 0 0 0 0 rgba(155, 44, 44, 0);
+    }
+  }
+}
+
+:root {
+  --primary: #9b2c2c;
+  --primary-dark: #7b2424;
+  --primary-light: #f7e8e8;
+  --background: #faf9f6;
+  /* Warm off-white/beige */
+  --surface: #ffffff;
+  --text-primary: #1a202c;
+  --text-secondary: #4a5568;
+  --text-muted: #a0aec0;
+  --border: #e2e8f0;
+
+  --font-serif: var(--font-sans);
+  /* Overriding serif with sans as per user request */
+  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+}
+
+.dark {
+  --primary: #f56565;
+  --primary-dark: #e53e3e;
+  --primary-light: rgba(245, 101, 101, 0.1);
+  --background: #111827;
+  /* Deeper background */
+  --surface: #1f2937;
+  /* Slightly lighter surface */
+  --text-primary: #f9fafb;
+  --text-secondary: #d1d5db;
+  /* Brighter secondary */
+  --text-muted: #9ca3af;
+  /* Brighter muted */
+  --border: #374151;
+}
+
+html {
+  scroll-behavior: smooth;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  font-family: var(--font-sans);
+  background-color: var(--background);
+  color: var(--text-primary);
+  margin: 0;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* ── UI Components ── */
+.voice-card {
+  background: var(--color-surface);
+  transition: all 0.3s ease;
+}
+
+.grid-bg {
+  background-image: radial-gradient(var(--color-border) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
+/* ── Microphone pulse animation ── */
+@keyframes pulse-ring {
+  0% {
+    transform: scale(1);
+    opacity: 0.4;
+  }
+
+  100% {
+    transform: scale(1.5);
+    opacity: 0;
+  }
+}
+
+.mic-pulse::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background-color: var(--color-error);
+  animation: pulse-ring 1.5s ease-out infinite;
+}
+
+/* ── Spin animation ── */
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-spin {
+  animation: spin 1s linear infinite;
+}
+
+/* ── Scroll-linked fade-in animation ── */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+section {
+  animation: fadeInUp 0.6s ease-out both;
+}
+
+/* ── Thin scrollbar ── */
+.scrollbar-thin::-webkit-scrollbar {
+  width: 4px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb {
+  background: var(--color-border);
+  border-radius: 4px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb:hover {
+  background: var(--color-text-muted);
+}

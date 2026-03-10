@@ -1,0 +1,50 @@
+[
+    {
+        "input_audio": "Test_cases_inputs\\3.ogg",
+        "input_roman": "PHD applicants ke liye minimum requirements kya hain?",
+        "response_roman": "PhD applicants ke liye minimum requirements hain: HEC se manzoor shuda university se relevant subject mein MS, MPhil ya barabar degree honi chahiye jisme kam az kam 60% marks ya 4.00 scale par 3.00 CGPA ho, aur taleem ka duration 18 saal ho. Iske ilawa, GRE/GAT ya fast nuces admission test mein kam az kam 60% score hona chahiye.",
+        "response_audio": "test_results\\response_3.mp3"
+    },
+    {
+        "input_audio": "Test_cases_inputs\\4.ogg",
+        "input_roman": "Do hazaar chhabis ke admission process mein application submission ki dates kya hain.",
+        "response_roman": "2026 ke admission process mein application submission ki dates May 19 se July 4 tak hain.",
+        "response_audio": "test_results\\response_4.mp3"
+    },
+    {
+        "input_audio": "Test_cases_inputs\\8.ogg",
+        "input_roman": "Applicants ko kaun se documents submit karne zaroori hain?",
+        "response_roman": "Applicants ko admission confirmation, transcripts, comprehensive exam results, plagiarism report, journal publication aur correspondence, aur foreign reviewer consents jama karne zaroori hain.",
+        "response_audio": "test_results\\response_8.mp3"
+    },
+    {
+        "input_audio": "Test_cases_inputs\\7.ogg",
+        "input_roman": "Admission ke baad candidates ko kaunsi additional support provide ki ja sakti hai?",
+        "response_roman": "Admission ke baad candidates ko mukhtalif financial assistance, scholarships, loans, aur university assistantships ki support faraham ki ja sakti hai.",
+        "response_audio": "test_results\\response_7.mp3"
+    },
+    {
+        "input_audio": "Test_cases_inputs\\6.ogg",
+        "input_roman": "Provisional admission kis ko di ja sakti hain?",
+        "response_roman": "Provisional admission un candidates ko di ja sakti hain jo results ka intezar kar rahe hain aur maqsoos marks hasil karne par munhasir hai.",
+        "response_audio": "test_results\\response_6.mp3"
+    },
+    {
+        "input_audio": "Test_cases_inputs\\22.ogg",
+        "input_roman": "Kya university apne students ke liye health insurance ya medical coverage plans offer karti hain?",
+        "response_roman": "Mujhe is bare mein kafi maloomat nahi hai.",
+        "response_audio": "test_results\\response_22.mp3"
+    },
+    {
+        "input_audio": "Test_cases_inputs\\19.ogg",
+        "input_roman": "University ki library digital resources aur e-books ka kitna collection hai?",
+        "response_roman": "Mujhe is bare mein kafi maloomat nahi hai.",
+        "response_audio": "test_results\\response_19.mp3"
+    },
+    {
+        "input_audio": "Test_cases_inputs\\15.ogg",
+        "input_roman": "fast nuces mein student counseling ya mental health support service available hai.",
+        "response_roman": "Mujhe is bare mein kaafi maloomat nahi hai.",
+        "response_audio": "test_results\\response_15.mp3"
+    }
+]
