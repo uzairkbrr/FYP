@@ -66,10 +66,10 @@ Refer to `FYP_TEST_CASES.md` for detailed test procedures.
 
 ## Contributors
 
-- [Team Member 1]
-- [Team Member 2]
-- [Team Member 3]
+- Uzair Ahmad
+- Arsalan Mateen
+- Muhammad Sohaib
 
 ## License
 
-This project is for educational purposes as part of FAST-NUCES FYP.
+This project is for educational purposes as part of FAST-NUCES Peshawar Campus FYP.
