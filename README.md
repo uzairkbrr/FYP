@@ -52,7 +52,7 @@ A voice assistant for Urdu-based queries, designed as a final year project (FYP)
 
 - Backend: Python, Jupyter Notebook, LangChain, ChromaDB
 - Frontend: React, Vite
-- APIs: OpenAI Whisper, GPT-4o-mini, ElevenLabs TTS
+- APIs: OpenAI Whisper,
 - Other: NumPy, dotenv
 
 ## Testing
