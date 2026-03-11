@@ -55,15 +55,6 @@ A voice assistant for Urdu-based queries, designed as a final year project (FYP)
 - APIs: OpenAI Whisper,
 - Other: NumPy, dotenv
 
-## Testing
-
-Run the test suite:
-```
-python test_runner.py
-```
-
-Refer to `FYP_TEST_CASES.md` for detailed test procedures.
-
 ## Contributors
 
 - Uzair Ahmad
