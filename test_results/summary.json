@@ -1,50 +1,50 @@
 [
     {
-        "input_audio": "Test_cases_inputs\\15.ogg",
-        "input_roman": "Fast News mein student counseling ya mental health support service available hai.",
-        "response_roman": "Mujhe is bare mein kafi maloomat nahi hai.",
-        "response_audio": "test_results\\response_15.mp3"
-    },
-    {
-        "input_audio": "Test_cases_inputs\\19.ogg",
-        "input_roman": "University ki library digital resources aur e-books ka kitna collection hai?",
-        "response_roman": "Mujhe is bare mein kafi maloomat nahi hai.",
-        "response_audio": "test_results\\response_19.mp3"
-    },
-    {
-        "input_audio": "Test_cases_inputs\\22.ogg",
-        "input_roman": "Kya university apne students ke liye health insurance ya medical coverage plans offer karti hain?",
-        "response_roman": "Mujhe is bare mein kafi maloomat nahi hai.",
-        "response_audio": "test_results\\response_22.mp3"
-    },
-    {
-        "input_audio": "Test_cases_inputs\\3.ogg",
+        "input_audio": "Test_cases_inputs\\input (1).ogg",
         "input_roman": "PHD applicants ke liye minimum requirements kya hain?",
         "response_roman": "PhD applicants ke liye minimum requirements hain: 18 saal taleem ke saath HEC se manzoor shuda university se MS/MPhil/MBA degree, minimum CGPA 3.00 ya first division, aur GRE/GAT ya FAST-NUCES admission test mein kam az kam 60% score.",
-        "response_audio": "test_results\\response_3.mp3"
+        "response_audio": "test_results\\response_input (1).mp3"
     },
     {
-        "input_audio": "Test_cases_inputs\\4.ogg",
-        "input_roman": "Do hazar chabbis ke admission process mein application submission ki dates kya hain.",
-        "response_roman": "Hazar chabbis ke admission process mein application submission ki dates May 19 se July 4 tak hain.",
-        "response_audio": "test_results\\response_4.mp3"
+        "input_audio": "Test_cases_inputs\\input (2).ogg",
+        "input_roman": "Do hazaar chabbis ke admission process mein application submission ki dates kya hain.",
+        "response_roman": "Mujhe is sawal ka jawab nahi pata.",
+        "response_audio": "test_results\\response_input (2).mp3"
     },
     {
-        "input_audio": "Test_cases_inputs\\6.ogg",
+        "input_audio": "Test_cases_inputs\\input (3).ogg",
         "input_roman": "Provisional admission kis ko di ja sakti hain?",
         "response_roman": "Provisional admission un candidates ko di ja sakti hai jo results ka intezar kar rahe hain aur maqsoos marks hasil karne par munhasir hai.",
-        "response_audio": "test_results\\response_6.mp3"
+        "response_audio": "test_results\\response_input (3).mp3"
     },
     {
-        "input_audio": "Test_cases_inputs\\7.ogg",
+        "input_audio": "Test_cases_inputs\\input (4).ogg",
         "input_roman": "Admission ke baad candidates ko kaunsi additional support provide ki ja sakti hai?",
-        "response_roman": "Admission ke baad candidates ko mukhtalif financial assistance, scholarships, aur loans ki sahulat faraham ki ja sakti hai. University assistantships bhi offer ki jati hain jahan students course grading ya Teacher Assistant ke tor par services dete hain.",
-        "response_audio": "test_results\\response_7.mp3"
+        "response_roman": "Admission ke baad candidates ko mukhtalif financial assistance, scholarships, aur loans ki sahulat faraham ki ja sakti hai. Is ke ilawa, university assistantships bhi offer ki jati hain jahan students ko course grading ya Teacher Assistant ke tor par kaam karne par muawza milta hai.",
+        "response_audio": "test_results\\response_input (4).mp3"
     },
     {
-        "input_audio": "Test_cases_inputs\\8.ogg",
+        "input_audio": "Test_cases_inputs\\input (5).ogg",
         "input_roman": "Applicants ko kaun se documents submit karne zaroori hain?",
-        "response_roman": "Applicants ko tamam documents aur transcripts admission ke waqt submit karne zaroori hain.",
-        "response_audio": "test_results\\response_8.mp3"
+        "response_roman": "Applicants ko admission ke waqt tamam documents aur transcripts submit karne zaroori hain.",
+        "response_audio": "test_results\\response_input (5).mp3"
+    },
+    {
+        "input_audio": "Test_cases_inputs\\input (6).ogg",
+        "input_roman": "Fast News mein student counseling ya mental health support service available hai.",
+        "response_roman": "Mujhe is bare mein kafi maloomat nahi hai.",
+        "response_audio": "test_results\\response_input (6).mp3"
+    },
+    {
+        "input_audio": "Test_cases_inputs\\input (7).ogg",
+        "input_roman": "University ki library digital resources aur e-books ka kitna collection hai?",
+        "response_roman": "Mujhe is bare mein kafi maloomat nahi hai.",
+        "response_audio": "test_results\\response_input (7).mp3"
+    },
+    {
+        "input_audio": "Test_cases_inputs\\input (8).ogg",
+        "input_roman": "Kya university apne students ke liye health insurance ya medical coverage plans offer karti hain?",
+        "response_roman": "Mujhe is bare mein kafi maloomat nahi hai.",
+        "response_audio": "test_results\\response_input (8).mp3"
     }
 ]
