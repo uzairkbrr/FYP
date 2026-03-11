@@ -2,13 +2,13 @@
     {
         "input_audio": "Test_cases_inputs\\input (1).ogg",
         "input_roman": "PHD applicants ke liye minimum requirements kya hain?",
-        "response_roman": "PhD applicants ke liye minimum requirements hain: 18 saal taleem ke saath HEC se manzoor shuda university se MS/MPhil/MBA degree, minimum CGPA 3.00 ya first division, aur GRE/GAT ya FAST-NUCES admission test mein kam az kam 60% score.",
+        "response_roman": "PhD applicants ke liye minimum requirements hain: 18 saal taleem ke saath MS/MPhil/MBA degree HEC se manzoor shuda university se honi chahiye, minimum CGPA 3.00 ya first division, aur GRE/GAT ya FAST-NUCES admission test mein kam az kam 60% score hona chahiye.",
         "response_audio": "test_results\\response_input (1).mp3"
     },
     {
         "input_audio": "Test_cases_inputs\\input (2).ogg",
-        "input_roman": "Do hazaar chabbis ke admission process mein application submission ki dates kya hain.",
-        "response_roman": "Mujhe is sawal ka jawab nahi pata.",
+        "input_roman": "Do hazaar chhabis ke admission process mein application submission ki dates kya hain.",
+        "response_roman": "FAST-NUCES ke 2025 ke admission schedule mein applications May 19 se July 4 tak submit karni hoti hain.",
         "response_audio": "test_results\\response_input (2).mp3"
     },
     {
@@ -20,18 +20,18 @@
     {
         "input_audio": "Test_cases_inputs\\input (4).ogg",
         "input_roman": "Admission ke baad candidates ko kaunsi additional support provide ki ja sakti hai?",
-        "response_roman": "Admission ke baad candidates ko mukhtalif financial assistance, scholarships, aur loans ki sahulat faraham ki ja sakti hai. Is ke ilawa, university assistantships bhi offer ki jati hain jahan students ko course grading ya Teacher Assistant ke tor par kaam karne par muawza milta hai.",
+        "response_roman": "Admission ke baad candidates ko mukhtalif financial assistance, scholarships, loans, aur university assistantships ki sahulat faraham ki ja sakti hai.",
         "response_audio": "test_results\\response_input (4).mp3"
     },
     {
         "input_audio": "Test_cases_inputs\\input (5).ogg",
         "input_roman": "Applicants ko kaun se documents submit karne zaroori hain?",
-        "response_roman": "Applicants ko admission ke waqt tamam documents aur transcripts submit karne zaroori hain.",
+        "response_roman": "Applicants ko admission confirmation, transcripts, comprehensive exam results, plagiarism report, journal publication aur correspondence, aur foreign reviewer consents submit karne zaroori hain.",
         "response_audio": "test_results\\response_input (5).mp3"
     },
     {
         "input_audio": "Test_cases_inputs\\input (6).ogg",
-        "input_roman": "Fast News mein student counseling ya mental health support service available hai.",
+        "input_roman": "Fast Newsz mein student counseling ya mental health support service available hai.",
         "response_roman": "Mujhe is bare mein kafi maloomat nahi hai.",
         "response_audio": "test_results\\response_input (6).mp3"
     },
