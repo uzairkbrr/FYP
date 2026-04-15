@@ -1,34 +1,27 @@
-import React, { useState } from 'react'
+import React, { useRef } from 'react'
+import useVoiceRecorder from '../hooks/useVoiceRecorder'
 
 export default function VoiceCard() {
-    const [status, setStatus] = useState('idle')
-    const [messages, setMessages] = useState([])
+    const { status, messages, timer, errorMessage, audioUrl, startRecording, stopRecording, reset } = useVoiceRecorder()
+    const audioRef = useRef(null)
 
-    const handleStartListening = () => {
-        setStatus('listening')
-        // Simulate voice input detection
-    }
-
-    const handleStopListening = () => {
-        setStatus('processing')
-
-        // Mock processing delay and response
-        setTimeout(() => {
-            const mockTranscript = "FAST University ki tuition fees kitni hai?"
-            const mockResponse = "FAST-NUCES ki tuition fee Rs. 11,000 per credit hour hai undergraduate programs ke liye."
-
-            setMessages(prev => [
-                ...prev,
-                { role: 'user', text: mockTranscript },
-                { role: 'bot', text: mockResponse }
-            ])
-            setStatus('responding')
-        }, 1500)
-    }
+    const handleStartListening = () => startRecording()
+    const handleStopListening = () => stopRecording()
 
     const handleReset = () => {
-        setStatus('idle')
-        setMessages([])
+        if (audioRef.current) {
+            audioRef.current.pause()
+            audioRef.current = null
+        }
+        reset()
+    }
+
+    const handlePlayAudio = () => {
+        if (audioUrl) {
+            if (audioRef.current) audioRef.current.pause()
+            audioRef.current = new Audio(audioUrl)
+            audioRef.current.play().catch(() => { })
+        }
     }
 
     const isListening = status === 'listening'
@@ -45,6 +38,7 @@ export default function VoiceCard() {
                         {hasResponse && (
                             <div className="flex items-center gap-3">
                                 <button
+                                    onClick={handlePlayAudio}
                                     className="px-4 py-1.5 rounded-full bg-primary text-white text-[9px] font-bold uppercase tracking-widest hover:bg-primary-dark transition-all shadow-sm cursor-pointer"
                                 >
                                     Listen
@@ -90,14 +84,17 @@ export default function VoiceCard() {
                                     </svg>
                                 )}
                             </button>
-                            <div className="mt-8">
+                            <div className="mt-6 flex flex-col items-center gap-2">
                                 <button
                                     onClick={isListening ? handleStopListening : handleStartListening}
                                     disabled={isProcessing}
                                     className="px-8 py-2.5 rounded-full bg-background border border-border text-[10px] font-bold text-text-secondary hover:bg-surface transition-colors cursor-pointer uppercase tracking-widest"
                                 >
-                                    {isListening ? 'Stop' : 'Click to Start'}
+                                    {isListening ? `Stop (${timer}s)` : 'Click to Start'}
                                 </button>
+                                {isProcessing && (
+                                    <span className="text-[10px] text-text-muted font-medium animate-pulse">Processing your query...</span>
+                                )}
                             </div>
                         </div>
 
@@ -128,10 +125,10 @@ export default function VoiceCard() {
                                     )}
                                 </div>
 
-                                {status === 'error' && (
+                                {(status === 'error' || errorMessage) && (
                                     <div className="mt-6 p-4 rounded bg-red-50 text-center border border-red-100">
                                         <p className="text-red-800 text-[10px] font-bold uppercase tracking-widest">
-                                            Something went wrong. Please try again.
+                                            {errorMessage || 'Something went wrong. Please try again.'}
                                         </p>
                                     </div>
                                 )}

@@ -5,3 +5,7 @@ chromadb
 python-dotenv
 openai
 tiktoken
+fastapi
+uvicorn
+python-multipart
+httpx

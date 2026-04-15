@@ -7,6 +7,7 @@ import HowItWorks from "../components/HowItWorks";
 import Team from "../components/Team";
 import Supervisor from "../components/Supervisor";
 import TestCases from "../components/TestCases";
+import ChatWidget from "../components/ChatWidget";
 import { useTheme } from "../context/ThemeContext";
 
 export default function Home() {
@@ -40,6 +41,7 @@ export default function Home() {
                 <Supervisor />
             </main>
 
+            <ChatWidget />
         </div>
     )
 }
