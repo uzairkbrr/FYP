@@ -21,6 +21,30 @@ _vectorstore = Chroma(
 # Ingestion
 # ---------------------------------------------------------------------------
 
+def _generate_description(text: str) -> str:
+    """Call GPT-4o-mini once to generate a short description of the text."""
+    try:
+        resp = _client.chat.completions.create(
+            model=GPT_MODEL,
+            messages=[
+                {
+                    "role": "system",
+                    "content": (
+                        "You are a helpful assistant. Read the following text and write a "
+                        "single short sentence (max 12 words) describing what topics it covers. "
+                        "Be specific. Do not start with 'This file' or 'This document'. "
+                        "Just state the topics directly."
+                    ),
+                },
+                {"role": "user", "content": text[:3000]},
+            ],
+            temperature=0.0,
+        )
+        return resp.choices[0].message.content.strip()
+    except Exception:
+        return ""
+
+
 def ingest_text(text: str, source_label: str) -> dict:
     """
     Chunk, embed, and upsert new text into the existing ChromaDB collection.
@@ -28,8 +52,11 @@ def ingest_text(text: str, source_label: str) -> dict:
     Uses deterministic IDs so re-uploading the same content is idempotent.
     Existing documents are never deleted — this is purely additive.
 
-    Returns: {"chunks_added": int, "source": source_label}
+    Returns: {"chunks_added": int, "source": source_label, "description": str}
     """
+    # Generate a one-liner description of the file (once, not per chunk)
+    description = _generate_description(text)
+
     splitter = RecursiveCharacterTextSplitter(
         chunk_size=500,
         chunk_overlap=50,
@@ -42,25 +69,30 @@ def ingest_text(text: str, source_label: str) -> dict:
         raw = f"{source_label}::{idx}::{chunk[:40]}"
         doc_id = hashlib.md5(raw.encode("utf-8")).hexdigest()
         ids.append(doc_id)
-        metadatas.append({"source": source_label})
+        metadatas.append({"source": source_label, "description": description})
 
     _vectorstore.add_texts(texts=chunks, ids=ids, metadatas=metadatas)
 
-    return {"chunks_added": len(chunks), "source": source_label}
+    return {"chunks_added": len(chunks), "source": source_label, "description": description}
 
 
 def get_collection_stats() -> dict:
-    """Return total chunk count and per-source breakdown."""
+    """Return total chunk count and per-source breakdown with descriptions."""
     col = _vectorstore._collection
     result = col.get(include=["metadatas"])
 
     total = len(result["ids"])
-    source_counts: dict[str, int] = {}
+    source_info: dict[str, dict] = {}
     for meta in result["metadatas"]:
         src = meta.get("source", "unknown")
-        source_counts[src] = source_counts.get(src, 0) + 1
+        if src not in source_info:
+            source_info[src] = {"chunks": 0, "description": meta.get("description", "")}
+        source_info[src]["chunks"] += 1
 
-    sources = [{"source": s, "chunks": c} for s, c in sorted(source_counts.items())]
+    sources = [
+        {"source": s, "chunks": info["chunks"], "description": info["description"]}
+        for s, info in sorted(source_info.items())
+    ]
     return {"total_chunks": total, "sources": sources}
 
 

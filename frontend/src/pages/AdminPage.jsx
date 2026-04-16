@@ -206,19 +206,21 @@ function StatsCard({ authedFetch }) {
                         <table className="w-full text-sm">
                             <thead>
                                 <tr className="border-b border-border/40">
-                                    <th className="text-left py-2 text-[10px] font-bold text-text-muted uppercase tracking-widest">
-                                        Filename
+                                    <th className="text-left py-2 text-[10px] font-bold text-text-muted uppercase tracking-widest w-[35%]">
+                                        Category
                                     </th>
-                                    <th className="text-right py-2 text-[10px] font-bold text-text-muted uppercase tracking-widest">
-                                        Chunks
+                                    <th className="text-left py-2 text-[10px] font-bold text-text-muted uppercase tracking-widest">
+                                        Description
                                     </th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {stats.sources.map((s) => (
                                     <tr key={s.source} className="border-b border-border/20">
-                                        <td className="py-2.5 text-text-primary font-medium">{s.source}</td>
-                                        <td className="py-2.5 text-right text-text-secondary">{s.chunks}</td>
+                                        <td className="py-2.5 font-medium font-mono text-text-primary text-xs">{s.source}</td>
+                                        <td className="py-2.5 text-text-secondary">
+                                            {s.description || <span className="text-text-muted">&mdash;</span>}
+                                        </td>
                                     </tr>
                                 ))}
                             </tbody>
@@ -239,6 +241,7 @@ function UploadCard({ authedFetch }) {
     const [file, setFile] = useState(null)
     const [status, setStatus] = useState('idle') // idle | uploading | success | error
     const [message, setMessage] = useState('')
+    const [description, setDescription] = useState('')
     const inputRef = useRef(null)
     const dropRef = useRef(null)
 
@@ -292,6 +295,7 @@ function UploadCard({ authedFetch }) {
             const data = await res.json()
             setStatus('success')
             setMessage(`${data.source} added successfully`)
+            setDescription(data.description || '')
             resetForm()
 
             // Refresh the stats card
@@ -316,8 +320,11 @@ function UploadCard({ authedFetch }) {
             <div className="px-8 py-6">
                 {/* Success / Error banners */}
                 {status === 'success' && (
-                    <div className="mb-5 px-4 py-3 rounded-lg bg-green-50 border border-green-200">
-                        <p className="text-green-800 text-sm font-bold text-center">{message}</p>
+                    <div className="mb-5 px-4 py-3 rounded-lg bg-green-50 border border-green-200 text-center">
+                        <p className="text-green-800 text-sm font-bold">{message}</p>
+                        {description && (
+                            <p className="text-green-700/70 text-xs mt-1">{description}</p>
+                        )}
                     </div>
                 )}
                 {status === 'error' && (
