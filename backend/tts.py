@@ -1,6 +1,55 @@
 import base64
+import re
 import httpx
 from .config import ELEVENLABS_API_KEY, ELEVENLABS_VOICE_ID, ELEVENLABS_MODEL
+
+# Ordered longest-first so "FAST-NUCES" matches before "NUCES", "CGPA" before "GPA", etc.
+_PRONUNCIATION_MAP = [
+    ("FAST-NUCES", "Fast Nuces"),
+    ("FAST NUCES", "Fast Nuces"),
+    ("NUCES",      "Nuces"),
+    ("NU-OAT",     "Nu Oat"),
+    ("SZABIST",    "Szabist"),
+    ("NUST",       "Nust"),
+    ("LUMS",       "Lums"),
+    ("HEC",        "Hec"),
+    ("PEEF",       "Peef"),
+    ("CGPA",       "C G P A"),
+    ("GPA",        "G P A"),
+    ("PhD",        "P H D"),
+    ("OAT",        "Oat"),
+    ("NTS",        "N T S"),
+    ("HOD",        "H O D"),
+    ("DSA",        "D S A"),
+    ("BBA",        "B B A"),
+    ("MBA",        "M B A"),
+    ("CSS",        "C S S"),
+    ("BS",         "B S"),
+    ("MS",         "M S"),
+    ("IT",         "I T"),
+    ("CS",         "C S"),
+    ("SE",         "S E"),
+    ("EE",         "E E"),
+    ("AI",         "A I"),
+]
+
+
+def preprocess_for_tts(text: str) -> str:
+    """Clean up ALL-CAPS words so ElevenLabs pronounces them naturally."""
+
+    # Step 1 — hardcoded pronunciation dictionary (whole-word, case-sensitive)
+    replaced = set()
+    for term, phonetic in _PRONUNCIATION_MAP:
+        escaped = re.escape(term)
+        pattern = rf"\b{escaped}\b" if "-" not in term else escaped
+        if re.search(pattern, text):
+            text = re.sub(pattern, phonetic, text)
+            replaced.add(term)
+
+    # Step 2 — general fallback: any remaining ALL-CAPS word (4+ chars) → Title Case
+    text = re.sub(r"\b[A-Z]{4,}\b", lambda m: m.group().title(), text)
+
+    return text
 
 
 def synthesize_speech(text: str) -> str:
@@ -9,6 +58,8 @@ def synthesize_speech(text: str) -> str:
 
     Returns a base64-encoded data URL (audio/mpeg).
     """
+    text = preprocess_for_tts(text)
+
     resp = httpx.post(
         f"https://api.elevenlabs.io/v1/text-to-speech/{ELEVENLABS_VOICE_ID}",
         headers={
