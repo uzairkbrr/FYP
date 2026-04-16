@@ -23,3 +23,7 @@ RAG_TOP_K = 15
 # ElevenLabs
 ELEVENLABS_VOICE_ID = "EXAVITQu4vr4xnSDxMaL"  # Sarah - female, mature, reassuring (premade)
 ELEVENLABS_MODEL = "eleven_multilingual_v2"
+
+# Admin panel
+ADMIN_USERNAME = os.getenv("ADMIN_USERNAME", "admin")
+ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD", "mahironcall")

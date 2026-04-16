@@ -144,11 +144,26 @@ KNOWN ISSUES
 
 - DEEPGRAM_API_KEY placeholder in .env (needs real key)
 - ELEVENLABS_API_KEY placeholder in .env (needs real key)
-- LangChain deprecation warning (cosmetic, non-blocking)
+- LangChain deprecation warning FIXED (migrated to langchain-chroma)
 
 --------------------------------------------------
 
 LATEST UPDATE LOG
+
+[2026-04-16]
+- Admin Panel: migrated rag.py from langchain_community to langchain_chroma
+- Admin Panel: added ingest_text() and get_collection_stats() to rag.py
+- Admin Panel: added POST /admin/ingest and GET /admin/stats endpoints
+- Admin Panel: HTTP Basic Auth on all /admin/* routes
+- Admin Panel: added ADMIN_USERNAME/ADMIN_PASSWORD to config.py and .env
+- Admin Panel: installed react-router-dom in frontend
+- Admin Panel: added BrowserRouter + /admin route to App.jsx
+- Admin Panel: created AdminPage.jsx (login gate, stats card, upload card)
+- Admin Panel: created scripts/migrate_existing.py
+- Admin Panel: ran migration - 443 documents tagged with source=script.txt
+- Admin Panel: updated requirements.txt (langchain-chroma, fastapi[security])
+- Admin Panel: updated README.md with Admin Panel section
+- Admin Panel: updated .env with admin credentials
 
 [2026-04-15]
 - Created FastAPI backend package (7 files)

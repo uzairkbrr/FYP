@@ -1,7 +1,7 @@
 ================================================================================
                     CURRENT STATE OF REPOSITORY: FYP2_P1
                     "Mahir on Call" - FAST-NUCES FYP Project
-                    Snapshot Date: April 15, 2026
+                    Snapshot Date: April 15, 2026 (Updated)
 ================================================================================
 
 
@@ -43,22 +43,7 @@
      - remotes/origin/sohaib   (contributor branch)
      - remotes/origin/uzair    (contributor branch)
 
-   Commit History (12 total commits, oldest to newest):
-     66788ab  first commit
-     06545c9  Add README.md
-     71118de  Update README.md
-     69f341c  Refactor code structure for improved readability and maintainability
-     4f00cb2  Add formula for total parameters calculation of GPT-2 Small model
-     74c9015  Merge branch 'main' of https://github.com/uzairkbrr/FYP
-     78ca36c  Refactor code structure for improved readability and maintainability
-     383b404  Update audio responses and modify summary.json for improved clarity and accuracy
-     1f845af  Updated UI
-     e094a79  removed extra MD files
-     eae2d88  update readme
-     af283f3  remove testcases from readme
-
-   Uncommitted Changes:
-     - main.ipynb (modified, 3 insertions / 3 deletions)
+   Status          : Clean (nothing to commit, working tree clean)
 
 
 3. DIRECTORY STRUCTURE
@@ -66,168 +51,190 @@
 
    FYP2_P1/
    |
-   |-- .env                        [179 bytes]  API keys configuration
-   |-- .gitignore                  [4 bytes]    Only ignores ".env"
-   |-- .venv/                      [directory]  Python virtual environment
-   |-- .git/                       [directory]  Git internals
+   |-- .env                        [API keys: OpenAI, Deepgram, ElevenLabs]
+   |-- .gitignore                  [ignores .env]
+   |-- .venv/                      [Python virtual environment]
+   |-- .git/                       [Git internals]
    |
    |-- README.md                   [1,597 bytes]  Project overview & instructions
-   |-- QUICK_START.md              [10,151 bytes] FYP presentation guide & cheat sheet
+   |-- QUICK_START.md              [10,151 bytes] FYP presentation guide
    |-- formula.txt                 [319 bytes]    GPT-2 Small parameter formula
-   |-- script.txt                  [50,434 bytes] Knowledge base document (46 lines, Roman Urdu)
-   |-- requirements.txt            [91 bytes]     Python dependencies
+   |-- script.txt                  [50,434 bytes] Knowledge base (46 lines, Roman Urdu)
+   |-- requirements.txt            [updated]      Python dependencies (includes fastapi, httpx, etc.)
+   |-- current-state.txt           [this file]
    |
-   |-- main.ipynb                  [388,772 bytes] RAG pipeline: chunking, embedding, querying
-   |-- pipeline.ipynb              [1,167,254 bytes] End-to-end pipeline: STT -> RAG -> TTS
-   |-- regenerate_audio.py         [1,497 bytes]  Script to regenerate audio from summary.json
+   |-- main.ipynb                  [388 KB]  RAG pipeline: chunking, embedding, querying
+   |-- pipeline.ipynb              [1.17 MB] Original end-to-end pipeline (Jupyter, reference only)
+   |-- regenerate_audio.py         [1,497 bytes]  Helper to regenerate audio from summary.json
    |-- test_runner.py              [14,068 bytes] Automated test suite (MahirTestSuite class)
    |
-   |-- output.mp3                  [20,352 bytes]   Sample audio output
-   |-- response_urdu.mp3           [50,496 bytes]   Urdu TTS response sample
-   |-- test_single_response.mp3    [49,728 bytes]   Single test query response audio
-   |-- tuition_fee.ogg             [8,992 bytes]    Sample input audio (tuition fee query)
+   |-- output.mp3                  Sample audio output
+   |-- response_urdu.mp3           Urdu TTS response sample
+   |-- test_single_response.mp3    Single test query response audio
+   |-- tuition_fee.ogg             Sample input audio (tuition fee query)
+   |-- backend_log.txt             Backend debug log
    |
    |-- assets/
    |   `-- images/
-   |       |-- arsalan.png         [490,053 bytes]  Team member photo
-   |       |-- sohaib.png          [167,249 bytes]  Team member photo
-   |       |-- uzair.png           [302,730 bytes]  Team member photo
-   |       `-- supervisor.png      [57,123 bytes]   Supervisor photo
+   |       |-- arsalan.png         Team member photo
+   |       |-- sohaib.png          Team member photo
+   |       |-- uzair.png           Team member photo
+   |       `-- supervisor.png      Supervisor photo
+   |
+   |-- backend/                    *** NEW - FastAPI backend package ***
+   |   |-- __init__.py             [0 bytes]      Package marker
+   |   |-- __pycache__/            [directory]     Python bytecode cache
+   |   |-- config.py               [643 bytes]    Centralized config, env loading
+   |   |-- stt.py                  [1,036 bytes]  Deepgram STT via httpx
+   |   |-- transliterate.py        [1,875 bytes]  GPT-4o-mini Urdu/Roman conversion
+   |   |-- rag.py                  [3,723 bytes]  ChromaDB retrieval + GPT response
+   |   |-- tts.py                  [882 bytes]    ElevenLabs TTS via httpx, base64 output
+   |   `-- main.py                 [3,411 bytes]  FastAPI app, /voice-query endpoint
    |
    |-- chroma_db/
-   |   |-- chroma.sqlite3          [4,976,640 bytes] ChromaDB vector store (SQLite)
+   |   |-- chroma.sqlite3          [~4.75 MB] ChromaDB vector store (SQLite)
    |   |-- 8e9bfdaa-.../           [collection data directory]
    |   `-- 989ea303-.../           [collection data directory]
    |
+   |-- context/
+   |   |-- goal.txt                Project goal & requirements spec
+   |   `-- progress.txt            Progress tracker (updated after every change)
+   |
    |-- Test_cases_inputs/
-   |   |-- input (1).ogg           [11,960 bytes]  Test audio: PhD requirements query
-   |   |-- input (2).ogg           [16,192 bytes]  Test audio: Admission dates query
-   |   |-- input (3).ogg           [11,042 bytes]  Test audio: Provisional admission query
-   |   |-- input (4).ogg           [16,673 bytes]  Test audio: Post-admission support query
-   |   |-- input (5).ogg           [11,966 bytes]  Test audio: Required documents query
-   |   |-- input (6).ogg           [15,822 bytes]  Test audio: Mental health support (out of KB)
-   |   |-- input (7).ogg           [17,817 bytes]  Test audio: Library resources (out of KB)
-   |   `-- input (8).ogg           [22,226 bytes]  Test audio: Health insurance (out of KB)
+   |   |-- input (1).ogg           Test audio: PhD requirements query
+   |   |-- input (2).ogg           Test audio: Admission dates query
+   |   |-- input (3).ogg           Test audio: Provisional admission query
+   |   |-- input (4).ogg           Test audio: Post-admission support query
+   |   |-- input (5).ogg           Test audio: Required documents query
+   |   |-- input (6).ogg           Test audio: Mental health support (out of KB)
+   |   |-- input (7).ogg           Test audio: Library resources (out of KB)
+   |   `-- input (8).ogg           Test audio: Health insurance (out of KB)
    |
    |-- test_results/
-   |   |-- summary.json            [3,140 bytes]   Test run results (8 entries)
-   |   |-- response (1).mp3        [258,432 bytes] Generated response audio
-   |   |-- response (2).mp3        [74,112 bytes]
-   |   |-- response (3).mp3        [89,856 bytes]
-   |   |-- response (4).mp3        [154,752 bytes]
-   |   |-- response (5).mp3        [68,544 bytes]
-   |   |-- response (6).mp3        [24,576 bytes]  (out-of-KB: "Mujhe is bare mein kafi maloomat nahi hai")
-   |   |-- response (7).mp3        [24,576 bytes]  (out-of-KB response)
-   |   `-- response (8).mp3        [24,576 bytes]  (out-of-KB response)
+   |   |-- summary.json            Test run results (8 entries)
+   |   `-- response (1-8).mp3      Generated response audio files
    |
-   |-- test_results_elevenlab/     [empty directory - ElevenLabs TTS results placeholder]
+   |-- test_results_elevenlab/     [empty directory]
    |
    `-- frontend/
-       |-- .gitignore              [253 bytes]     Ignores node_modules, dist, logs, editor files
-       |-- index.html              [887 bytes]     HTML entry point
-       |-- package.json            [503 bytes]     NPM config (React + Vite + Tailwind)
-       |-- package-lock.json       [80,253 bytes]  Dependency lockfile
-       |-- tsconfig.json           [685 bytes]     TypeScript config (strict: false, JSX)
-       |-- vite.config.js          [215 bytes]     Vite config (React + Tailwind plugins)
-       |-- node_modules/           [directory]     Installed npm packages
-       |-- dist/                   [directory]     Production build output (built)
+       |-- .gitignore              Ignores node_modules, dist, logs
+       |-- index.html              HTML entry point
+       |-- package.json            NPM config (React 19 + Vite 7 + Tailwind 4)
+       |-- package-lock.json       Dependency lockfile
+       |-- tsconfig.json           TypeScript config
+       |-- vite.config.js          Vite config (React + Tailwind plugins)
+       |-- node_modules/           Installed npm packages
+       |-- dist/                   Production build output
        |-- public/
-       |   |-- mahir_favicon.png   [362,349 bytes] App favicon
-       |   |-- vite.svg            [1,497 bytes]   Vite logo
-       |   |-- images/             [team & supervisor photos]
-       |   |-- Test_cases_inputs/  [22 .ogg files for frontend playback]
-       |   `-- test_results/       [response audio files for frontend playback]
+       |   |-- mahir_favicon.png   App favicon
+       |   |-- vite.svg            Vite logo
+       |   |-- images/             Team & supervisor photos
+       |   |-- Test_cases_inputs/  Audio files for frontend playback
+       |   `-- test_results/       Response audio for frontend playback
        `-- src/
-           |-- main.jsx            [253 bytes]     React entry point (StrictMode)
-           |-- App.jsx             [248 bytes]     Root component (ThemeProvider + Home)
-           |-- index.css           [3,540 bytes]   Global styles + Tailwind + theme variables
+           |-- main.jsx            React entry point (StrictMode)
+           |-- App.jsx             Root component (ThemeProvider + Home)
+           |-- index.css           Global styles + Tailwind + theme variables
            |-- context/
-           |   `-- ThemeContext.jsx [1,086 bytes]   Light/dark theme context (localStorage)
+           |   `-- ThemeContext.jsx Light/dark theme context (localStorage)
+           |-- hooks/              *** NEW ***
+           |   `-- useVoiceRecorder.js  [4,596 bytes] Shared recording + API hook
            |-- pages/
-           |   `-- Home.jsx        [1,436 bytes]   Main page layout (all sections)
+           |   `-- Home.jsx        [updated] Main page (now includes ChatWidget)
            `-- components/
-               |-- Navbar.jsx      [2,997 bytes]   Sticky nav: brand, links, theme toggle
-               |-- Hero.jsx        [2,406 bytes]   Landing hero: title, description, CTA
-               |-- VoiceCard.jsx   [9,032 bytes]   Voice interaction: mic, transcript, response
-               |-- TestCases.jsx   [2,762 bytes]   Renders test results from summary.json
-               |-- ProjectInfo.jsx [3,542 bytes]   Problem statement & solution cards
-               |-- HowItWorks.jsx  [9,950 bytes]   8-step pipeline visualization
-               |-- Team.jsx        [3,199 bytes]   Team member cards with photos
-               |-- Supervisor.jsx  [2,594 bytes]   Supervisor profile card
-               `-- StatusIndicator.jsx [1,586 bytes] Status indicator UI widget
+               |-- Navbar.jsx      Sticky nav: brand, links, theme toggle
+               |-- Hero.jsx        Landing hero: title, description, CTA
+               |-- VoiceCard.jsx   [updated] Voice interaction (NOW connected to backend)
+               |-- ChatWidget.jsx  [14,048 bytes] *** NEW *** Floating chat widget
+               |-- TestCases.jsx   Renders test results from summary.json
+               |-- ProjectInfo.jsx Problem statement & solution cards
+               |-- HowItWorks.jsx  8-step pipeline visualization
+               |-- Team.jsx        Team member cards with photos
+               |-- Supervisor.jsx  Supervisor profile card
+               `-- StatusIndicator.jsx  Status indicator widget (unused)
 
 
 4. TECHNOLOGY STACK
 ================================================================================
 
-   BACKEND (Python):
-   -----------------
-   - Python 3.x (virtual environment in .venv/)
-   - Jupyter Notebook (main.ipynb, pipeline.ipynb)
-   - LangChain (langchain, langchain-community, langchain-openai)
-   - ChromaDB (vector database for RAG)
-   - OpenAI API (Whisper for STT, GPT-4o-mini for LLM)
-   - gTTS (Google Text-to-Speech for Urdu audio synthesis)
-   - python-dotenv (environment variable management)
-   - tiktoken (tokenizer for OpenAI models)
+   BACKEND (Python - FastAPI):
+   ---------------------------
+   - Python 3.13
+   - FastAPI 0.135.3 (production API server)
+   - Uvicorn (ASGI server)
+   - httpx (HTTP client for external API calls)
+   - OpenAI SDK (GPT-4o-mini for transliteration + RAG response)
+   - LangChain + ChromaDB (vector retrieval)
+   - python-dotenv (environment management)
+   - tiktoken (tokenizer)
 
-   FRONTEND (JavaScript/React):
-   ----------------------------
+   FRONTEND (React):
+   -----------------
    - React 19.2.4
    - Vite 7.3.1 (build tool & dev server)
    - Tailwind CSS 4.2.1 (via @tailwindcss/vite plugin)
-   - TypeScript ~5.9.3 (config present, but JSX files used throughout)
+   - TypeScript ~5.9.3 (config present, JSX files used)
 
-   APIs & EXTERNAL SERVICES:
-   -------------------------
-   - OpenAI Whisper API (speech-to-text transcription)
-   - OpenAI GPT-4o-mini (Urdu-to-Roman conversion, RAG response generation)
-   - Google TTS (gTTS) (text-to-speech in Urdu)
-   - ElevenLabs API (referenced in test_runner.py but key not present in .env)
+   EXTERNAL APIs:
+   --------------
+   - Deepgram Nova-2       (Speech-to-Text, auto language detection)
+   - OpenAI GPT-4o-mini    (Urdu/Roman transliteration + RAG generation)
+   - OpenAI Embeddings     (text-embedding-ada-002 for ChromaDB)
+   - ElevenLabs            (Text-to-Speech, multilingual v2 model)
 
    ENVIRONMENT VARIABLES (.env):
    -----------------------------
-   - OPENAI_API_KEY : Set (sk-proj-...)
-   - ELEVENLABS_API_KEY : NOT set (referenced in test_runner.py but absent)
+   - OPENAI_API_KEY       : Set (active)
+   - DEEPGRAM_API_KEY     : Set (active)
+   - ELEVENLABS_API_KEY   : Set (active)
 
 
-5. CORE PIPELINE (How It Works)
+5. CORE PIPELINE (Production - FastAPI Backend)
 ================================================================================
 
-   The system follows an 8-step pipeline:
+   The system follows a 5-step pipeline via POST /voice-query:
 
-   Step 1: User Speaks
-           -> Voice input captured via browser Web Audio API
+   Step 1: Speech-to-Text (Deepgram)
+           -> Audio bytes sent to Deepgram Nova-2 API
+           -> Automatic language detection (English vs Urdu)
+           -> Returns transcript + detected language code
+           -> File: backend/stt.py
 
-   Step 2: Audio Packaging
-           -> Audio compressed into .ogg format and sent to backend
+   Step 2: Language Handling
+           -> If English: transcript used as-is for display and RAG
+           -> If Urdu: Arabic script converted to Roman Urdu via GPT-4o-mini
+           -> Roman Urdu used for both display (transcript) and RAG query
+           -> File: backend/transliterate.py
 
-   Step 3: Speech-to-Text (STT)
-           -> OpenAI Whisper API transcribes Urdu audio into Urdu script
-           -> Function: transcribe_audio() in pipeline.ipynb
+   Step 3: Retrieval-Augmented Generation (RAG)
+           -> Query embedded and searched against ChromaDB (top-15 results)
+           -> GPT-4o-mini generates response using retrieved context ONLY
+           -> If Urdu: returns both roman_urdu (display) and arabic_urdu (TTS)
+           -> If English: returns English text for both display and TTS
+           -> Anti-hallucination: "Mujhe is bare mein kafi maloomat nahi hai"
+           -> File: backend/rag.py
 
-   Step 4: Urdu Script to Roman Urdu
-           -> GPT-4o-mini converts Arabic Urdu script to Roman Urdu
-           -> Function: urdu_to_roman() in pipeline.ipynb
+   Step 4: Text-to-Speech (ElevenLabs)
+           -> Response text sent to ElevenLabs multilingual v2 model
+           -> Voice: Sarah (EXAVITQu4vr4xnSDxMaL) - female, mature, reassuring
+           -> Supports both English and Urdu pronunciation
+           -> Audio returned as base64 data URL (no static file serving needed)
+           -> File: backend/tts.py
 
-   Step 5: Retrieval-Augmented Generation (RAG)
-           -> Roman Urdu query is embedded and searched against ChromaDB
-           -> Top 15 similar documents retrieved
-           -> GPT-4o-mini generates a bilingual response (Roman Urdu + Arabic Urdu)
-              using ONLY the retrieved context (no hallucination)
-           -> Function: generate_response() in pipeline.ipynb
+   Step 5: Response Delivery
+           -> JSON returned: { transcript, response_text, audio_url }
+           -> audio_url is a base64-encoded data:audio/mpeg URL
+           -> Frontend auto-plays the audio and displays text
+           -> File: backend/main.py
 
-   Step 6: Response Formatting
-           -> Response returned as JSON with "roman_urdu" and "arabic_urdu" keys
-           -> If information is not in context, responds:
-              "Mujhe is bare mein kafi maloomat nahi hai"
+   API Endpoint:
+     POST http://localhost:8000/voice-query
+     Input:  multipart/form-data with "audio" file field
+     Output: { "transcript": "...", "response_text": "...", "audio_url": "data:audio/mpeg;base64,..." }
 
-   Step 7: Text-to-Speech (TTS)
-           -> Arabic Urdu response synthesized into .mp3 audio using gTTS
-           -> Function: synthesize_urdu_to_mp3() in pipeline.ipynb
-
-   Step 8: Audio Playback
-           -> Synthesized audio played back to the user in the browser
+   Health Check:
+     GET http://localhost:8000/health
+     Output: { "status": "ok" }
 
 
 6. KNOWLEDGE BASE (script.txt)
@@ -260,11 +267,6 @@
    - Transfer and readmission policies
    - 2025 admission schedule (May 19 - August 18)
 
-   This text is semantically chunked in main.ipynb using GPT-4o-mini into
-   247 chunks, each with a category, content, and summary. These chunks are
-   embedded using OpenAI Embeddings and stored in ChromaDB under the
-   collection name "sample".
-
 
 7. VECTOR DATABASE (chroma_db/)
 ================================================================================
@@ -273,101 +275,65 @@
    - DB File      : chroma_db/chroma.sqlite3 (~4.75 MB)
    - Collection   : "sample"
    - Documents    : 247 semantic chunks
-   - Embeddings   : OpenAI Embeddings (text-embedding-ada-002)
-   - Search Type  : Similarity search (k=15 in pipeline, k=5 in main)
-
-   The database contains two collection directories:
-   - 8e9bfdaa-3dca-4c19-ab99-2f93b3e28583/
-   - 989ea303-ec45-4115-a9fa-811bd9af9f63/
+   - Embeddings   : OpenAI text-embedding-ada-002
+   - Search Type  : Similarity search (k=15)
+   - Initialized at module load in backend/rag.py (read-only)
 
 
-8. NOTEBOOKS IN DETAIL
+8. BACKEND IN DETAIL (backend/ package)
 ================================================================================
 
-   A. main.ipynb (388 KB)
-   ----------------------
-   Purpose: Builds the RAG pipeline from scratch.
+   A. backend/config.py
+   --------------------
+   - Loads .env from project root via python-dotenv
+   - Exports all API keys: OPENAI, DEEPGRAM, ELEVENLABS
+   - ChromaDB config: persist_directory, collection "sample"
+   - LLM config: GPT-4o-mini, RAG_TOP_K=15
+   - ElevenLabs config: Sarah voice (EXAVITQu4vr4xnSDxMaL), multilingual_v2
 
-   Cell-by-cell flow:
-   1. Import LangChain, OpenAI, dotenv; load environment
-   2. Load script.txt with robust encoding fallback
-   3. Split document into batches by newline
-   4. Define JSON schema for semantic chunking (category, content, summary)
-   5. Process each batch through GPT-4o-mini for semantic chunking
-   6. Combine all chunks (247 total)
-   7. Convert chunks to LangChain Document objects with metadata
-   8. Initialize ChromaDB vector store
-   9. Add documents to vector store
-   10. Test similarity search with query "fast kee tuition fee kitne hain?"
-   11. Full RAG pipeline: retrieve -> prompt -> structured output
-       (bilingual: roman_urdu + arabic_urdu)
+   B. backend/stt.py
+   -----------------
+   - transcribe_audio(audio_bytes, mimetype) -> {"transcript", "language"}
+   - Uses httpx POST to Deepgram REST API
+   - Params: model=nova-2, smart_format=true, detect_language=true
+   - Returns "ur" if Urdu/Hindi detected, "en" otherwise
 
-   Output example:
-     Query: "fast kee tuition fee kitne hain?"
-     Answer: "FAST ki tuition fee Rs. 11,000 per credit hour hai."
-
-   B. pipeline.ipynb (1.17 MB)
+   C. backend/transliterate.py
    ---------------------------
-   Purpose: Complete end-to-end STT -> RAG -> TTS pipeline.
+   - urdu_to_roman(urdu_text) -> str : Arabic script to Roman Urdu
+   - roman_to_urdu(roman_text) -> str : Roman Urdu to Arabic script (for TTS)
+   - Both use GPT-4o-mini with temperature=0.0
 
-   Functions defined:
-   1. transcribe_audio()    - Whisper STT (Urdu audio -> Urdu script)
-   2. urdu_to_roman()       - GPT-4o-mini (Urdu script -> Roman Urdu)
-   3. generate_response()   - ChromaDB retrieval + GPT-4o-mini generation
-   4. synthesize_urdu_to_mp3() - gTTS (Arabic Urdu text -> MP3)
+   D. backend/rag.py
+   -----------------
+   - ChromaDB vector store initialized once at module load
+   - generate_response(query, language) -> {"response_text", "tts_text"}
+   - Urdu path: GPT generates JSON with roman_urdu + arabic_urdu keys
+   - English path: GPT generates plain English text
+   - response_text = display text, tts_text = text for speech synthesis
 
-   Single query test:
-     Input: tuition_fee.ogg
-     Transcribed: "Fast University ki tuition fees kitni hai?"
-     Response: "FAST University ki tuition fees Rs. 11000 per credit hour hai."
-     Output: response_urdu.mp3
+   E. backend/tts.py
+   -----------------
+   - synthesize_speech(text) -> str (base64 data URL)
+   - Uses httpx POST to ElevenLabs REST API
+   - Voice: Sarah (premade, female, mature, reassuring)
+   - Model: eleven_multilingual_v2 (English + Urdu)
+   - Returns "data:audio/mpeg;base64,..." string
 
-   Batch processing:
-     Processes all 8 files in Test_cases_inputs/
-     Generates corresponding response MP3s in test_results/
-     Saves summary to test_results/summary.json
+   F. backend/main.py
+   ------------------
+   - FastAPI app with CORS (localhost:5173)
+   - POST /voice-query endpoint orchestrates full pipeline
+   - Detailed step-by-step logging to stdout
+   - Error handling: 400 (no speech), 502 (external API), 500 (internal)
+   - GET /health endpoint for health checks
+   - Response model: Pydantic VoiceQueryResponse
 
-
-9. TEST CASES & RESULTS
-================================================================================
-
-   A. Test Inputs (Test_cases_inputs/, 8 files):
-   ----------------------------------------------
-   #1: "PHD applicants ke liye minimum requirements kya hain?"
-   #2: "2026 ke admission process mein application submission ki dates kya hain."
-   #3: "Provisional admission kis ko di ja sakti hain?"
-   #4: "Admission ke baad candidates ko kaunsi additional support provide ki ja sakti hai?"
-   #5: "Applicants ko kaun se documents submit karne zaroori hain?"
-   #6: "Fast Newsz mein student counseling ya mental health support service available hai."
-   #7: "University ki library digital resources aur e-books ka kitna collection hai?"
-   #8: "Kya university apne students ke liye health insurance ya medical coverage plans offer karti hain?"
-
-   B. Results (test_results/summary.json):
-   ----------------------------------------
-   Queries 1-5: Successfully answered with relevant information from the knowledge base.
-   Queries 6-8: Correctly identified as out-of-knowledge-base and responded with:
-                "Mujhe is bare mein kafi maloomat nahi hai."
-                (demonstrates anti-hallucination behavior)
-
-   C. Automated Test Suite (test_runner.py):
-   -----------------------------------------
-   Class: MahirTestSuite
-   Tests implemented:
-     - TC-01: Voice Recording UI Interaction (MANUAL)
-     - TC-02: Theme Toggle Functionality (MANUAL)
-     - TC-07: RAG Query - Information Available (AUTOMATED - ChromaDB)
-     - TC-08: RAG Query - Information NOT Available (AUTOMATED - ChromaDB)
-     - TC-09: RAG Query Expansion & Synonym Handling (AUTOMATED - ChromaDB)
-     - TC-12: ElevenLabs Female Voice Verification (AUTOMATED - skips if no key)
-     - TC-13: Number Normalization for TTS (AUTOMATED)
-     - CONFIG: System Configuration Check (AUTOMATED)
-   Output: test_results_presentation/test_report.json
-
-   D. test_results_elevenlab/ : Empty directory (placeholder for ElevenLabs
-      TTS output, not yet populated)
+   Run command:
+     python -m uvicorn backend.main:app --host 0.0.0.0 --port 8000 --reload
 
 
-10. FRONTEND APPLICATION
+9. FRONTEND APPLICATION
 ================================================================================
 
     Framework     : React 19 + Vite 7 + Tailwind CSS 4
@@ -384,31 +350,56 @@
 
     B. Page Sections (single-page app, Home.jsx):
     ----------------------------------------------
-    1. Navbar       - Sticky navigation bar with brand, section links
-                      (Demo, Mission, How it works, Team, Supervisor),
-                      and theme toggle button
-    2. Hero         - Large title "Mahir on Call", tagline describing
-                      the assistant, "Start Speaking Now" CTA button
-    3. VoiceCard    - Core interaction widget:
-                      - Circular microphone button with 3 states:
-                        idle, listening (red), processing (spinner)
-                      - Transcript display area
-                      - User/Bot message bubbles
-                      - "Listen" and "New Query" action buttons
-                      - NOTE: Currently uses MOCK data (hardcoded
-                        response), not connected to the Python backend
-    4. TestCases    - Fetches /test_results/summary.json and renders
-                      cards for each test case showing:
-                      - Input audio player + Roman Urdu transcript
-                      - Generated response text + response audio player
-    5. ProjectInfo  - Two cards: "The Challenge" (problem statement)
-                      and "The Solution" (proposed solution)
-    6. HowItWorks   - 8-step pipeline visualization with icons,
-                      descriptions, and technology labels
-    7. Team         - Three member cards with photos, names, roll numbers
-    8. Supervisor   - Supervisor profile card with photo and title
+    1. Navbar       - Sticky nav with brand, links, theme toggle
+    2. Hero         - Title "Mahir on Call", tagline, "Start Speaking Now" CTA
+    3. VoiceCard    - *** UPDATED: Connected to backend ***
+                      - Records audio via MediaRecorder API (max 30s)
+                      - Sends to POST /voice-query
+                      - Displays transcript + response
+                      - Auto-plays ElevenLabs audio
+                      - "Listen" button replays last audio
+                      - "New Query" resets conversation
+                      - Shows recording timer (Xs) during recording
+                      - Shows "Processing your query..." during API call
+                      - Handles mic permission errors
+    4. TestCases    - Renders test results from summary.json
+    5. ProjectInfo  - Problem statement & solution cards
+    6. HowItWorks   - 8-step pipeline visualization
+    7. Team         - Three member cards with photos
+    8. Supervisor   - Supervisor profile card
+    9. ChatWidget   - *** NEW: Floating chat widget ***
 
-    C. UI Features:
+    C. ChatWidget (NEW - frontend/src/components/ChatWidget.jsx):
+    -------------------------------------------------------------
+    - Floating circular button at bottom-right corner (z-50)
+    - Clicking opens a 380x560px Messenger-style panel
+    - Header: "Mahir on Call" + clear chat + contact moderator + close
+    - Contact Moderator dropdown:
+      - Email: admissions@pwr.nu.edu.pk (mailto: link)
+      - Call: (091) 111 128 128 (tel: link)
+    - Messages area: scrollable chat bubbles
+      - User messages: right-aligned, primary color
+      - Bot messages: left-aligned, with "Play Audio" button
+      - "Recording..." indicator with timer during recording
+      - "Processing..." spinner during API call
+    - Footer: mic button + status text
+    - Auto-scrolls to latest message
+    - Independent instance of useVoiceRecorder hook
+
+    D. useVoiceRecorder Hook (NEW - frontend/src/hooks/useVoiceRecorder.js):
+    -------------------------------------------------------------------------
+    - Shared between VoiceCard and ChatWidget
+    - Manages MediaRecorder setup with browser compatibility
+      (audio/webm;codecs=opus -> audio/webm -> default fallback)
+    - Recording timer: 0-30 seconds with auto-stop
+    - Sends audio blob to http://localhost:8000/voice-query via fetch
+    - Manages state: idle | listening | processing | responding | error
+    - Maintains messages array (user + bot pairs)
+    - Auto-plays response audio on receipt
+    - Handles mic permission errors (NotAllowedError)
+    - Cleanup on unmount (stops tracks, clears intervals)
+
+    E. UI Features:
     ----------------
     - Fully responsive (mobile, tablet, desktop)
     - Smooth scroll navigation between sections
@@ -417,13 +408,39 @@
     - Google Fonts: Inter (primary), Merriweather (serif)
     - Grid dot pattern background on hero section
     - Hover effects on cards (scale, shadow, color transitions)
+    - Dark mode support across all components including ChatWidget
 
-    D. Static Assets in public/:
-    -----------------------------
-    - mahir_favicon.png (362 KB) - App favicon/logo
-    - images/ - Team & supervisor photos (served at /images/...)
-    - Test_cases_inputs/ - 22 .ogg audio files (numbered 1-22)
-    - test_results/ - Response MP3 files for playback in TestCases component
+
+10. TEST CASES & RESULTS
+================================================================================
+
+   A. Test Inputs (Test_cases_inputs/, 8 files):
+   ----------------------------------------------
+   #1: "PHD applicants ke liye minimum requirements kya hain?"
+   #2: "2026 ke admission process mein application submission ki dates kya hain."
+   #3: "Provisional admission kis ko di ja sakti hain?"
+   #4: "Admission ke baad candidates ko kaunsi additional support provide ki ja sakti hai?"
+   #5: "Applicants ko kaun se documents submit karne zaroori hain?"
+   #6: "Fast Newsz mein student counseling ya mental health support service available hai."
+   #7: "University ki library digital resources aur e-books ka kitna collection hai?"
+   #8: "Kya university apne students ke liye health insurance ya medical coverage plans offer karti hain?"
+
+   B. Pipeline Test (verified working via curl):
+   ----------------------------------------------
+   Test: curl -X POST -F "audio=@Test_cases_inputs/input (1).ogg" http://localhost:8000/voice-query
+   Result:
+     transcript:    "PhD applications ke liye minimum requirements kya hain?"
+     response_text: "PhD applications ke liye minimum requirements hain: HEC se
+                    manzoor shuda university se relevant subject mein MS, MPhil
+                    ya barabar degree honi chahiye..."
+     audio_url:     data:audio/mpeg;base64,SUQzBAA... (ElevenLabs audio)
+   Status: PASS - Full pipeline working end-to-end
+
+   C. Automated Test Suite (test_runner.py):
+   -----------------------------------------
+   Class: MahirTestSuite
+   Tests: TC-01 through TC-13 + CONFIG check
+   Output: test_results_presentation/test_report.json
 
 
 11. DEPENDENCIES
@@ -438,12 +455,15 @@
     - python-dotenv
     - openai
     - tiktoken
+    - fastapi          (NEW)
+    - uvicorn          (NEW)
+    - python-multipart (NEW)
+    - httpx            (NEW)
 
-    Additional packages used but NOT in requirements.txt:
-    - gtts (Google Text-to-Speech) - used in pipeline.ipynb and regenerate_audio.py
-    - elevenlabs - used in test_runner.py
-    - num2words - used in test_runner.py for number normalization tests
-    - IPython - used for Audio display in notebooks
+    Additional packages installed but NOT in requirements.txt:
+    - gtts (used in pipeline.ipynb and regenerate_audio.py)
+    - starlette (auto-installed with fastapi)
+    - pydantic (auto-installed with fastapi)
 
     B. Frontend (package.json):
     ---------------------------
@@ -461,112 +481,84 @@
     - vite@^7.3.1
 
 
-12. HELPER SCRIPTS
+12. HOW TO RUN
 ================================================================================
 
-    regenerate_audio.py
-    -------------------
-    Purpose: Regenerates audio response MP3 files from test_results/summary.json.
-    Flow:
-      1. Loads summary.json
-      2. For each entry, takes the Roman Urdu response
-      3. Converts Roman Urdu to Arabic Urdu script using GPT-4o-mini
-      4. Synthesizes Urdu audio via gTTS
-      5. Saves MP3 to test_results/ directory
-
-
-13. MISCELLANEOUS FILES
-================================================================================
-
-    formula.txt
-    -----------
-    Contains the formula for calculating total parameters of GPT-2 Small (124M):
-      Total Params = (vocab_size x emb_dim) + (context_length x emb_dim) +
-                     n_layers x (4 x emb_dim^2 + 2 x (emb_dim x 4*emb_dim)) +
-                     2 x emb_dim
-    Where: vocab_size=50257, context_length=1024, emb_dim=768, n_layers=12
-
-    QUICK_START.md
+    Prerequisites:
     --------------
-    Comprehensive FYP presentation preparation guide including:
-    - 20 test cases overview (3 UI, 3 STT, 4 RAG, 4 TTS, 3 E2E, 3 Error Handling)
-    - 7-minute live demo flow
-    - Before/After metrics table
-    - Presentation checklists and troubleshooting
-    - Q&A reference guide
-    Note: Some referenced markdown files (FYP_TEST_CASES.md, PRESENTATION_GUIDE.md,
-          TEST_CHEAT_SHEET.md, TEST_DOCUMENTATION_README.md) have been removed
-          from the repository (commit e094a79).
-
-
-14. KNOWN ISSUES & OBSERVATIONS
-================================================================================
-
-    1. FRONTEND-BACKEND NOT CONNECTED:
-       The VoiceCard component uses hardcoded mock data (setTimeout with a
-       fixed response). It is NOT wired to the Python pipeline. The pipeline
-       runs only in Jupyter notebooks.
-
-    2. INCOMPLETE requirements.txt:
-       Missing: gtts, elevenlabs, num2words, ipython
-       These are used in the codebase but not listed as dependencies.
-
-    3. ELEVENLABS API KEY MISSING:
-       test_runner.py references ELEVENLABS_API_KEY, but it is not present
-       in the .env file. The TC-12 test will be skipped.
-
-    4. test_results_elevenlab/ IS EMPTY:
-       The directory exists but contains no files, suggesting ElevenLabs
-       TTS integration was planned but not completed.
-
-    5. LANGCHAIN DEPRECATION WARNING:
-       The codebase uses `langchain_community.vectorstores.Chroma` which is
-       deprecated in LangChain 0.2.9. Should migrate to `langchain-chroma`
-       package.
-
-    6. EXPOSED API KEY:
-       The .env file contains a plaintext OpenAI API key. While .env is in
-       .gitignore, the key is visible to anyone with local access.
-
-    7. TYPESCRIPT CONFIG BUT JSX FILES:
-       tsconfig.json is configured with TypeScript settings, but all source
-       files use .jsx extension (plain JavaScript). TypeScript strict mode
-       is disabled.
-
-    8. REMOVED DOCUMENTATION:
-       Several markdown documentation files referenced in QUICK_START.md
-       were removed in commit e094a79 (FYP_TEST_CASES.md, PRESENTATION_GUIDE.md,
-       TEST_CHEAT_SHEET.md, TEST_DOCUMENTATION_README.md).
-
-    9. UNCOMMITTED CHANGES:
-       main.ipynb has 3 lines of uncommitted modifications.
-
-
-15. HOW TO RUN
-================================================================================
+    - Python 3.13+ with .venv activated
+    - Node.js with npm
+    - Valid API keys in .env for: OPENAI, DEEPGRAM, ELEVENLABS
 
     Backend:
     --------
-    1. cd FYP2_P1
-    2. python -m venv .venv
-    3. .venv\Scripts\activate  (Windows)
-    4. pip install -r requirements.txt
-    5. pip install gtts  (missing from requirements.txt)
-    6. Create .env with OPENAI_API_KEY=<your-key>
-    7. jupyter notebook pipeline.ipynb
-    8. Run all cells to process queries
+    cd FYP2_P1
+    .venv\Scripts\activate
+    python -m uvicorn backend.main:app --host 0.0.0.0 --port 8000 --reload
 
     Frontend:
     ---------
-    1. cd frontend
-    2. npm install
-    3. npm run dev
-    4. Open http://localhost:5173
+    cd FYP2_P1/frontend
+    npm run dev
 
-    Tests:
-    ------
-    1. cd FYP2_P1
-    2. python test_runner.py
+    Open: http://localhost:5173
+
+    Use: Click the microphone in VoiceCard or the floating chat button (bottom-right)
+
+
+13. LANGUAGE BEHAVIOR
+================================================================================
+
+    The system dynamically adapts based on detected input language:
+
+    IF user speaks ENGLISH:
+      - Deepgram detects "en"
+      - Transcript displayed in English
+      - RAG response generated in English
+      - TTS audio synthesized in English
+
+    IF user speaks URDU:
+      - Deepgram detects "ur" (or "hi" as fallback)
+      - Urdu script converted to Roman Urdu via GPT-4o-mini
+      - Transcript displayed in Roman Urdu
+      - RAG response generated in Roman Urdu
+      - Roman Urdu converted to Arabic Urdu script for TTS
+      - TTS audio synthesized in natural Urdu
+
+    Anti-hallucination:
+      - If info not in knowledge base: "Mujhe is bare mein kafi maloomat nahi hai"
+      - Verified working with test inputs #6, #7, #8 (out-of-KB queries)
+
+
+14. KNOWN ISSUES & NOTES
+================================================================================
+
+    1. LANGCHAIN DEPRECATION WARNING (cosmetic):
+       backend/rag.py uses langchain_community.vectorstores.Chroma which
+       shows a deprecation warning. Non-blocking; migrate to langchain-chroma
+       package in the future.
+
+    2. TYPESCRIPT CONFIG BUT JSX FILES:
+       tsconfig.json configured but all source files use .jsx. TypeScript
+       strict mode is disabled.
+
+    3. REMOVED DOCUMENTATION:
+       Several markdown files referenced in QUICK_START.md were removed in
+       commit e094a79 (FYP_TEST_CASES.md, etc.).
+
+    4. ELEVENLABS FREE TIER:
+       The original "Rachel" voice (21m00Tcm4TlvDq8ikWAM) required a paid
+       plan. Switched to "Sarah" (EXAVITQu4vr4xnSDxMaL), a premade voice
+       available on free accounts.
+
+    5. BASE64 AUDIO DELIVERY:
+       TTS audio is returned as base64 data URLs in JSON. This avoids
+       static file serving but adds ~33% size overhead. Typical responses
+       are 50-200KB MP3 (~67-267KB as base64), which is acceptable.
+
+    6. CORS CONFIGURED FOR DEV ONLY:
+       Backend allows origins localhost:5173 and 127.0.0.1:5173. For
+       production, this should be updated to the actual domain.
 
 
 ================================================================================

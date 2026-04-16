@@ -7,4 +7,8 @@ export default defineConfig({
     react(),
     tailwindcss(),
   ],
+  server: {
+    // SPA fallback — serve index.html for all routes (e.g. /admin)
+    historyApiFallback: true,
+  },
 })

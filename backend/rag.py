@@ -1,12 +1,14 @@
+import hashlib
 import json
 import openai
 from langchain_openai import OpenAIEmbeddings
-from langchain_community.vectorstores import Chroma
+from langchain_chroma import Chroma
+from langchain_text_splitters import RecursiveCharacterTextSplitter
 from .config import OPENAI_API_KEY, CHROMA_PERSIST_DIR, CHROMA_COLLECTION, RAG_TOP_K, GPT_MODEL
 
 _client = openai.OpenAI(api_key=OPENAI_API_KEY)
 
-# Initialize ChromaDB once at module load (read-only)
+# Initialize ChromaDB once at module load
 _embeddings = OpenAIEmbeddings(api_key=OPENAI_API_KEY)
 _vectorstore = Chroma(
     embedding_function=_embeddings,
@@ -14,6 +16,57 @@ _vectorstore = Chroma(
     collection_name=CHROMA_COLLECTION,
 )
 
+
+# ---------------------------------------------------------------------------
+# Ingestion
+# ---------------------------------------------------------------------------
+
+def ingest_text(text: str, source_label: str) -> dict:
+    """
+    Chunk, embed, and upsert new text into the existing ChromaDB collection.
+
+    Uses deterministic IDs so re-uploading the same content is idempotent.
+    Existing documents are never deleted — this is purely additive.
+
+    Returns: {"chunks_added": int, "source": source_label}
+    """
+    splitter = RecursiveCharacterTextSplitter(
+        chunk_size=500,
+        chunk_overlap=50,
+    )
+    chunks = splitter.split_text(text)
+
+    ids = []
+    metadatas = []
+    for idx, chunk in enumerate(chunks):
+        raw = f"{source_label}::{idx}::{chunk[:40]}"
+        doc_id = hashlib.md5(raw.encode("utf-8")).hexdigest()
+        ids.append(doc_id)
+        metadatas.append({"source": source_label})
+
+    _vectorstore.add_texts(texts=chunks, ids=ids, metadatas=metadatas)
+
+    return {"chunks_added": len(chunks), "source": source_label}
+
+
+def get_collection_stats() -> dict:
+    """Return total chunk count and per-source breakdown."""
+    col = _vectorstore._collection
+    result = col.get(include=["metadatas"])
+
+    total = len(result["ids"])
+    source_counts: dict[str, int] = {}
+    for meta in result["metadatas"]:
+        src = meta.get("source", "unknown")
+        source_counts[src] = source_counts.get(src, 0) + 1
+
+    sources = [{"source": s, "chunks": c} for s, c in sorted(source_counts.items())]
+    return {"total_chunks": total, "sources": sources}
+
+
+# ---------------------------------------------------------------------------
+# RAG query (unchanged)
+# ---------------------------------------------------------------------------
 
 def generate_response(query: str, language: str) -> dict:
     """

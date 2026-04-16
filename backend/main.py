@@ -1,13 +1,16 @@
+import secrets
 import traceback
 import httpx
-from fastapi import FastAPI, UploadFile, File, HTTPException
+from fastapi import FastAPI, UploadFile, File, HTTPException, Depends
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.security import HTTPBasic, HTTPBasicCredentials
 from pydantic import BaseModel
 
 from .stt import transcribe_audio
 from .transliterate import urdu_to_roman
-from .rag import generate_response
+from .rag import generate_response, ingest_text, get_collection_stats
 from .tts import synthesize_speech
+from .config import ADMIN_USERNAME, ADMIN_PASSWORD
 
 app = FastAPI(title="Mahir on Call API")
 
@@ -91,3 +94,59 @@ def voice_query(audio: UploadFile = File(...)):
 @app.get("/health")
 def health():
     return {"status": "ok"}
+
+
+# ---------------------------------------------------------------------------
+# Admin endpoints
+# ---------------------------------------------------------------------------
+
+_security = HTTPBasic()
+
+MAX_UPLOAD_SIZE = 2 * 1024 * 1024  # 2 MB
+
+
+def _verify_admin(credentials: HTTPBasicCredentials = Depends(_security)):
+    correct_user = secrets.compare_digest(credentials.username, ADMIN_USERNAME)
+    correct_pass = secrets.compare_digest(credentials.password, ADMIN_PASSWORD)
+    if not (correct_user and correct_pass):
+        raise HTTPException(
+            status_code=401,
+            detail="Invalid credentials",
+            headers={"WWW-Authenticate": "Basic"},
+        )
+    return credentials.username
+
+
+@app.post("/admin/ingest")
+def admin_ingest(
+    file: UploadFile = File(...),
+    _user: str = Depends(_verify_admin),
+):
+    """Upload a .txt file to chunk, embed, and add to the knowledge base."""
+    if not file.filename or not file.filename.lower().endswith(".txt"):
+        raise HTTPException(status_code=400, detail="Only .txt files are accepted.")
+
+    content_bytes = file.file.read()
+    if len(content_bytes) > MAX_UPLOAD_SIZE:
+        raise HTTPException(status_code=400, detail="File exceeds 2 MB limit.")
+
+    try:
+        text = content_bytes.decode("utf-8")
+    except UnicodeDecodeError:
+        raise HTTPException(status_code=400, detail="File must be valid UTF-8 text.")
+
+    if not text.strip():
+        raise HTTPException(status_code=400, detail="File is empty.")
+
+    source_label = file.filename
+    print(f"[admin/ingest] Ingesting {source_label} ({len(text)} chars)...")
+    result = ingest_text(text, source_label)
+    print(f"[admin/ingest] Done — {result['chunks_added']} chunks added")
+
+    return {"success": True, **result}
+
+
+@app.get("/admin/stats")
+def admin_stats(_user: str = Depends(_verify_admin)):
+    """Return knowledge base statistics."""
+    return get_collection_stats()

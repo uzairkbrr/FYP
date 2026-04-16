@@ -1,11 +1,12 @@
 langchain-community
 langchain-openai
+langchain-chroma
 langchain
 chromadb
 python-dotenv
 openai
 tiktoken
-fastapi
+fastapi[security]
 uvicorn
 python-multipart
 httpx
