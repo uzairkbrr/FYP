@@ -3,7 +3,17 @@ import { useState, useRef, useCallback, useEffect } from 'react'
 const API_URL = 'http://localhost:8000'
 const MAX_SECONDS = 30
 
-export default function useVoiceRecorder() {
+function makeId() {
+    return `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
+}
+
+function nowTimestamp() {
+    return new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false })
+}
+
+export default function useVoiceRecorder(options = {}) {
+    const { autoPlay = true } = options
+
     const [status, setStatus] = useState('idle')
     // idle | listening | processing | responding | error
     const [messages, setMessages] = useState([])
@@ -92,16 +102,16 @@ export default function useVoiceRecorder() {
         }
     }, [])
 
-    const interruptAndRecord = useCallback(async () => {
-        // Stop any currently playing audio immediately
+    // Stop any audio managed by the hook and return to idle.
+    // Does NOT start a new recording — caller must tap mic again.
+    const interruptAudio = useCallback(() => {
         if (audioRef.current) {
             audioRef.current.pause()
             audioRef.current.currentTime = 0
             audioRef.current = null
         }
-        // Start a new recording right away
-        await startRecording()
-    }, [startRecording])
+        setStatus('idle')
+    }, [])
 
     const sendAudio = async (blob) => {
         setStatus('processing')
@@ -109,8 +119,7 @@ export default function useVoiceRecorder() {
             const formData = new FormData()
             formData.append('audio', blob, 'recording.webm')
 
-            // Build conversation history from the last 6 messages.
-            // Read from ref to avoid stale closure inside the memoized startRecording.
+            // Build conversation history from last 6 messages (read from ref)
             const history = messagesRef.current.slice(-6).map(m => ({
                 role: m.role === 'bot' ? 'assistant' : 'user',
                 content: m.text,
@@ -131,17 +140,29 @@ export default function useVoiceRecorder() {
 
             const newMsgs = []
             if (data.transcript) {
-                newMsgs.push({ role: 'user', text: data.transcript })
+                newMsgs.push({
+                    id: makeId(),
+                    role: 'user',
+                    text: data.transcript,
+                    timestamp: nowTimestamp(),
+                    audioUrl: null,
+                })
             }
             if (data.response_text) {
-                newMsgs.push({ role: 'bot', text: data.response_text, audioUrl: data.audio_url })
+                newMsgs.push({
+                    id: makeId(),
+                    role: 'bot',
+                    text: data.response_text,
+                    timestamp: nowTimestamp(),
+                    audioUrl: data.audio_url || null,
+                })
             }
             setMessages(prev => [...prev, ...newMsgs])
             setAudioUrl(data.audio_url || null)
-            setStatus('responding')
 
-            // Auto-play the response audio
-            if (data.audio_url) {
+            // Auto-play only if opted in (VoiceCard = yes, ChatWidget = no)
+            if (autoPlay && data.audio_url) {
+                setStatus('responding')
                 const audio = new Audio(data.audio_url)
                 audioRef.current = audio
                 audio.onended = () => {
@@ -149,6 +170,8 @@ export default function useVoiceRecorder() {
                     setStatus('idle')
                 }
                 audio.play().catch(() => { })
+            } else {
+                setStatus('idle')
             }
 
         } catch (err) {
@@ -156,6 +179,57 @@ export default function useVoiceRecorder() {
             setErrorMessage(err.message || 'Failed to process your query. Please try again.')
         }
     }
+
+    // Text query: skips STT, hits /text-query endpoint
+    const sendTextQuery = useCallback(async (text) => {
+        const trimmed = (text || '').trim()
+        if (!trimmed) return
+
+        setErrorMessage('')
+        setMessages(prev => [...prev, {
+            id: makeId(),
+            role: 'user',
+            text: trimmed,
+            timestamp: nowTimestamp(),
+            audioUrl: null,
+        }])
+        setStatus('processing')
+
+        try {
+            const history = messagesRef.current.slice(-6).map(m => ({
+                role: m.role === 'bot' ? 'assistant' : 'user',
+                content: m.text,
+            }))
+
+            const res = await fetch(`${API_URL}/text-query`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ query: trimmed, history }),
+            })
+
+            if (!res.ok) {
+                const err = await res.json().catch(() => ({}))
+                throw new Error(err.detail || 'Server error')
+            }
+
+            const data = await res.json()
+            if (data.response_text) {
+                setMessages(prev => [...prev, {
+                    id: makeId(),
+                    role: 'bot',
+                    text: data.response_text,
+                    timestamp: nowTimestamp(),
+                    audioUrl: data.audio_url || null,
+                }])
+            }
+            setAudioUrl(data.audio_url || null)
+            setStatus('idle')
+
+        } catch (err) {
+            setStatus('error')
+            setErrorMessage(err.message || 'Failed to process your query. Please try again.')
+        }
+    }, [])
 
     const reset = useCallback(() => {
         clearInterval(timerRef.current)
@@ -179,7 +253,8 @@ export default function useVoiceRecorder() {
         audioUrl,
         startRecording,
         stopRecording,
-        interruptAndRecord,
+        interruptAudio,
+        sendTextQuery,
         reset,
     }
 }

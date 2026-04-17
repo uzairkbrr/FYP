@@ -198,11 +198,6 @@ function StatsCard({ authedFetch }) {
 
                 {stats && !loading && (
                     <>
-                        <p className="text-text-primary text-lg font-bold mb-4">
-                            Total chunks in knowledge base:{' '}
-                            <span className="text-primary">{stats.total_chunks}</span>
-                        </p>
-
                         <table className="w-full text-sm">
                             <thead>
                                 <tr className="border-b border-border/40">

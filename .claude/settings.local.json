@@ -3,7 +3,8 @@
     "allow": [
       "Bash(grep -n \"raise_for_status\" /c/Users/-/OneDrive/Desktop/FYP2_P1/backend/*.py)",
       "Bash(/c/Users/-/OneDrive/Desktop/FYP2_P1/.venv/Scripts/python -m pip install langchain-chroma)",
-      "Bash(.venv/Scripts/python scripts/reset_chromadb.py)"
+      "Bash(.venv/Scripts/python scripts/reset_chromadb.py)",
+      "Bash(/c/Users/-/OneDrive/Desktop/FYP2_P1/.venv/Scripts/python -c ' *)"
     ]
   }
 }

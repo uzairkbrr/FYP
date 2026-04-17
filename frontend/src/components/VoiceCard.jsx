@@ -2,12 +2,12 @@ import React, { useRef } from 'react'
 import useVoiceRecorder from '../hooks/useVoiceRecorder'
 
 export default function VoiceCard() {
-    const { status, messages, timer, errorMessage, audioUrl, startRecording, stopRecording, interruptAndRecord, reset } = useVoiceRecorder()
+    const { status, messages, timer, errorMessage, audioUrl, startRecording, stopRecording, interruptAudio, reset } = useVoiceRecorder()
     const localAudioRef = useRef(null)
 
     const handleMicClick = () => {
         if (isListening) stopRecording()
-        else if (hasResponse) interruptAndRecord()
+        else if (hasResponse) interruptAudio()
         else startRecording()
     }
 

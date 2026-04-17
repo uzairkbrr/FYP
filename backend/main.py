@@ -104,6 +104,56 @@ def voice_query(
         raise HTTPException(status_code=500, detail=f"Processing error: {str(e)}")
 
 
+class TextQueryRequest(BaseModel):
+    query: str
+    history: list = []
+
+
+@app.post("/text-query", response_model=VoiceQueryResponse)
+def text_query(body: TextQueryRequest):
+    """Process a text query: skip STT, run RAG -> TTS."""
+    try:
+        text = (body.query or "").strip()
+        if not text:
+            raise HTTPException(status_code=400, detail="Empty query.")
+
+        # Detect language: any Arabic-script char => Urdu
+        is_urdu = any("\u0600" <= c <= "\u06FF" for c in text)
+        language = "ur" if is_urdu else "en"
+        print(f"[text-query] lang={language}, text={text[:80]!r}")
+
+        # For Urdu script input, convert to Roman Urdu so RAG matches the KB
+        if is_urdu:
+            display_transcript = urdu_to_roman(text)
+            rag_query = display_transcript
+        else:
+            display_transcript = text
+            rag_query = text
+
+        history = body.history if isinstance(body.history, list) else []
+        rag_result = generate_response(rag_query, language, history)
+        audio_url = synthesize_speech(rag_result["tts_text"])
+
+        return VoiceQueryResponse(
+            transcript=display_transcript,
+            response_text=rag_result["response_text"],
+            audio_url=audio_url,
+        )
+
+    except HTTPException:
+        raise
+    except httpx.HTTPStatusError as e:
+        body_text = e.response.text[:500]
+        print(f"[text-query] HTTP ERROR {e.response.status_code} from {e.request.url}: {body_text}")
+        raise HTTPException(
+            status_code=502,
+            detail=f"External API error ({e.response.status_code}): {body_text}",
+        )
+    except Exception as e:
+        print(f"[text-query] UNEXPECTED ERROR: {traceback.format_exc()}")
+        raise HTTPException(status_code=500, detail=f"Processing error: {str(e)}")
+
+
 @app.get("/health")
 def health():
     return {"status": "ok"}
