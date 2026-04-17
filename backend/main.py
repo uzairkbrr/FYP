@@ -1,7 +1,8 @@
+import json
 import secrets
 import traceback
 import httpx
-from fastapi import FastAPI, UploadFile, File, HTTPException, Depends
+from fastapi import FastAPI, UploadFile, File, Form, HTTPException, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
 from pydantic import BaseModel
@@ -30,12 +31,24 @@ class VoiceQueryResponse(BaseModel):
 
 
 @app.post("/voice-query", response_model=VoiceQueryResponse)
-def voice_query(audio: UploadFile = File(...)):
+def voice_query(
+    audio: UploadFile = File(...),
+    history: str = Form(default="[]"),
+):
     """Process a voice query: STT -> RAG -> TTS pipeline."""
     try:
         audio_bytes = audio.file.read()
         mimetype = audio.content_type or "audio/webm"
         print(f"[voice-query] Received {len(audio_bytes)} bytes, mimetype={mimetype}")
+
+        # Parse conversation history (optional, defaults to empty on any issue)
+        try:
+            conversation_history = json.loads(history)
+            if not isinstance(conversation_history, list):
+                conversation_history = []
+        except Exception:
+            conversation_history = []
+        print(f"[voice-query] History: {len(conversation_history)} prior turns")
 
         # Step 1: Speech-to-Text with language detection (Deepgram)
         print("[voice-query] Step 1: Deepgram STT...")
@@ -63,7 +76,7 @@ def voice_query(audio: UploadFile = File(...)):
 
         # Step 3: RAG retrieval + response generation
         print("[voice-query] Step 3: RAG generation...")
-        rag_result = generate_response(rag_query, language)
+        rag_result = generate_response(rag_query, language, conversation_history)
         print(f"[voice-query] RAG response: {rag_result['response_text'][:80]!r}")
 
         # Step 4: Text-to-Speech (ElevenLabs)

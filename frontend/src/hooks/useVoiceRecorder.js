@@ -16,6 +16,12 @@ export default function useVoiceRecorder() {
     const timerRef = useRef(null)
     const streamRef = useRef(null)
     const audioRef = useRef(null)
+    const messagesRef = useRef(messages)
+
+    // Keep ref in sync so async callbacks always see the latest messages
+    useEffect(() => {
+        messagesRef.current = messages
+    }, [messages])
 
     // Cleanup on unmount
     useEffect(() => {
@@ -102,6 +108,14 @@ export default function useVoiceRecorder() {
         try {
             const formData = new FormData()
             formData.append('audio', blob, 'recording.webm')
+
+            // Build conversation history from the last 6 messages.
+            // Read from ref to avoid stale closure inside the memoized startRecording.
+            const history = messagesRef.current.slice(-6).map(m => ({
+                role: m.role === 'bot' ? 'assistant' : 'user',
+                content: m.text,
+            }))
+            formData.append('history', JSON.stringify(history))
 
             const res = await fetch(`${API_URL}/voice-query`, {
                 method: 'POST',

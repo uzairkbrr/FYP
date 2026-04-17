@@ -50,7 +50,7 @@ export default function VoiceCard() {
                                     onClick={handleReset}
                                     className="px-4 py-1.5 rounded-full bg-surface text-text-primary text-[9px] font-bold uppercase tracking-widest hover:bg-background transition-all border border-border cursor-pointer"
                                 >
-                                    New Query
+                                    New Conversation
                                 </button>
                             </div>
                         )}

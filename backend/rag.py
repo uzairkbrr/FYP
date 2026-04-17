@@ -100,13 +100,16 @@ def get_collection_stats() -> dict:
 # RAG query (unchanged)
 # ---------------------------------------------------------------------------
 
-def generate_response(query: str, language: str) -> dict:
+def generate_response(query: str, language: str, conversation_history: list = []) -> dict:
     """
     Retrieve context from ChromaDB and generate a response via GPT-4o-mini.
 
     Args:
         query: User query (Roman Urdu if Urdu, English if English)
         language: "en" or "ur"
+        conversation_history: list of {"role": "user"|"assistant", "content": str}
+            representing prior turns in this conversation. Sliced to last 6 items
+            to keep token usage bounded. Empty list = stateless behavior (no regression).
 
     Returns:
         {"response_text": str, "tts_text": str}
@@ -121,13 +124,16 @@ def generate_response(query: str, language: str) -> dict:
         pieces.append(f"[{i + 1}] Category: {cat}\n{doc.page_content}")
     context = "\n\n".join(pieces)
 
+    # Bound token usage: keep only the last 6 turns (3 user + 3 assistant)
+    history = (conversation_history or [])[-6:]
+
     if language == "ur":
-        return _generate_urdu_response(query, context)
+        return _generate_urdu_response(query, context, history)
     else:
-        return _generate_english_response(query, context)
+        return _generate_english_response(query, context, history)
 
 
-def _generate_urdu_response(query: str, context: str) -> dict:
+def _generate_urdu_response(query: str, context: str, history: list = []) -> dict:
     system_prompt = f"""You are Mahir, a warm and helpful voice assistant for FAST-NUCES Peshawar's front desk. You help students with queries about admissions, fees, scholarships, programs, and campus life.
 
 Answer the student's question using the provided context. Follow these rules strictly:
@@ -146,7 +152,7 @@ Answer the student's question using the provided context. Follow these rules str
 
 5. Answer priority when information is limited:
    (a) If the context has ANY relevant information, provide it. Even partial information is better than redirecting to staff.
-   (b) If the information is not in the context at all, provide whatever partial related information you can find, then say you don't have the complete details. Use this phrasing in Roman Urdu: "Mujhe is bare mein kafi maloomat nahi hai."
+   (b) If the information is not in the context at all, provide whatever partial related information you can find, then say you don't have the complete details."
    (c) Only direct the student to administrative staff if the query is personal, case-specific, requires a human decision, or involves documents/approvals (e.g. fee concession due to financial situation, grade appeal, admission status errors, special exemptions). For general information queries — fee structure, admission dates, scholarship names, program info, attendance policy — never say "admissions office se raabta karein"; instead just say you don't have that specific detail right now.
 
 6. Write all numbers WITHOUT commas (11000 not 11,000). Currency format: Rs. 11000 per credit hour.
@@ -160,6 +166,7 @@ Context:
         model=GPT_MODEL,
         messages=[
             {"role": "system", "content": system_prompt},
+            *history,
             {"role": "user", "content": query},
         ],
         temperature=0.1,
@@ -177,7 +184,7 @@ Context:
         return {"response_text": text, "tts_text": text}
 
 
-def _generate_english_response(query: str, context: str) -> dict:
+def _generate_english_response(query: str, context: str, history: list = []) -> dict:
     system_prompt = f"""You are Mahir, a warm and helpful voice assistant for FAST-NUCES Peshawar's front desk. You help students with queries about admissions, fees, scholarships, programs, and campus life.
 
 Answer the student's question using the provided context. Follow these rules strictly:
@@ -208,6 +215,7 @@ Context:
         model=GPT_MODEL,
         messages=[
             {"role": "system", "content": system_prompt},
+            *history,
             {"role": "user", "content": query},
         ],
         temperature=0.1,
