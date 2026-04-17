@@ -6,10 +6,9 @@ from .config import ELEVENLABS_API_KEY, ELEVENLABS_VOICE_ID, ELEVENLABS_MODEL
 # Ordered longest-first so "FAST-NUCES" matches before "NUCES", "CGPA" before "GPA", etc.
 _PRONUNCIATION_MAP = [
     ("FAST-NUCES", "Fast Nuces"),
+    ("NU-Test", "NU Test"),
     ("FAST NUCES", "Fast Nuces"),
     ("NUCES",      "Nuces"),
-    ("NU-OAT",     "Nu Oat"),
-    ("SZABIST",    "Szabist"),
     ("NUST",       "Nust"),
     ("LUMS",       "Lums"),
     ("HEC",        "Hec"),
@@ -36,6 +35,11 @@ _PRONUNCIATION_MAP = [
 
 def preprocess_for_tts(text: str) -> str:
     """Clean up ALL-CAPS words so ElevenLabs pronounces them naturally."""
+
+    # Step 0 — replace URLs with the word "Link."
+    text = re.sub(r'https?://\S+', 'Link.', text)
+    text = re.sub(r'www\.\S+', 'Link.', text)
+    text = re.sub(r' {2,}', ' ', text).strip()
 
     # Step 1 — hardcoded pronunciation dictionary (whole-word, case-sensitive)
     replaced = set()

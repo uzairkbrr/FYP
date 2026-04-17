@@ -8,13 +8,13 @@ const STATUS_CONFIG = {
         animate: false,
     },
     listening: {
-        label: 'Listening...',
+        label: 'Listening',
         color: 'bg-primary',
         textColor: 'text-primary',
         animate: true,
     },
     processing: {
-        label: 'Processing...',
+        label: 'Processing',
         color: 'bg-warning',
         textColor: 'text-warning',
         animate: true,

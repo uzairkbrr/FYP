@@ -102,7 +102,7 @@ export default function VoiceCard() {
                                     {isListening ? `Stop (${timer}s)` : hasResponse ? 'Tap to interrupt' : 'Click to Start'}
                                 </button>
                                 {isProcessing && (
-                                    <span className="text-[10px] text-text-muted font-medium animate-pulse">Processing your query...</span>
+                                    <span className="text-[10px] text-text-muted font-medium animate-pulse">Processing your query</span>
                                 )}
                             </div>
                         </div>

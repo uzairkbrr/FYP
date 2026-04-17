@@ -134,7 +134,7 @@ function LoginGate({ onLogin, error, setError }) {
                         disabled={loading}
                         className="w-full py-2.5 rounded-lg bg-primary text-white text-sm font-bold uppercase tracking-widest hover:bg-primary-dark transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                        {loading ? 'Verifying...' : 'Sign In'}
+                        {loading ? 'Verifying' : 'Sign In'}
                     </button>
                 </div>
             </form>
@@ -190,7 +190,7 @@ function StatsCard({ authedFetch }) {
                             <circle className="opacity-10" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                             <path className="opacity-90" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
                         </svg>
-                        <span className="text-text-muted text-sm">Loading stats...</span>
+                        <span className="text-text-muted text-sm">Loading stats</span>
                     </div>
                 )}
 
@@ -381,7 +381,7 @@ function UploadCard({ authedFetch }) {
                             <circle className="opacity-10" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                             <path className="opacity-90" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
                         </svg>
-                        <span className="text-text-muted text-sm font-medium">Processing...</span>
+                        <span className="text-text-muted text-sm font-medium">Processing</span>
                     </div>
                 )}
             </div>
