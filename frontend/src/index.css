@@ -124,6 +124,22 @@ body {
   animation: pulse-ring 1.5s ease-out infinite;
 }
 
+/* ── Speaking / interrupt-ready pulse ── */
+@keyframes speaking-pulse {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 var(--primary);
+  }
+  50% {
+    transform: scale(1.12);
+    box-shadow: 0 0 0 10px rgba(155, 44, 44, 0);
+  }
+}
+
+.speaking-pulse {
+  animation: speaking-pulse 1.5s ease-in-out infinite;
+}
+
 /* ── Spin animation ── */
 @keyframes spin {
   to {

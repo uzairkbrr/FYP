@@ -4,7 +4,7 @@ import useVoiceRecorder from '../hooks/useVoiceRecorder'
 export default function ChatWidget() {
     const [isOpen, setIsOpen] = useState(false)
     const [showContact, setShowContact] = useState(false)
-    const { status, messages, timer, errorMessage, audioUrl, startRecording, stopRecording, reset } = useVoiceRecorder()
+    const { status, messages, timer, errorMessage, audioUrl, startRecording, stopRecording, interruptAndRecord, reset } = useVoiceRecorder()
     const messagesEndRef = useRef(null)
     const audioRef = useRef(null)
 
@@ -14,9 +14,11 @@ export default function ChatWidget() {
 
     const isListening = status === 'listening'
     const isProcessing = status === 'processing'
+    const isResponding = status === 'responding'
 
     const handleMicClick = () => {
         if (isListening) stopRecording()
+        else if (isResponding) interruptAndRecord()
         else startRecording()
     }
 
@@ -31,6 +33,10 @@ export default function ChatWidget() {
     const handleClose = () => {
         setIsOpen(false)
         if (isListening) stopRecording()
+        if (audioRef.current) {
+            audioRef.current.pause()
+            audioRef.current = null
+        }
     }
 
     const handleClearChat = () => {
@@ -203,7 +209,9 @@ export default function ChatWidget() {
                         ? 'bg-primary text-white scale-110 shadow-lg shadow-primary/30'
                         : isProcessing
                             ? 'bg-background/50 border-2 border-border border-dashed cursor-not-allowed text-text-muted'
-                            : 'bg-primary/10 text-primary hover:bg-primary hover:text-white border-2 border-primary/20 hover:border-primary'
+                            : isResponding
+                                ? 'bg-primary text-white speaking-pulse'
+                                : 'bg-primary/10 text-primary hover:bg-primary hover:text-white border-2 border-primary/20 hover:border-primary'
                         }`}
                 >
                     {isProcessing ? (
@@ -227,7 +235,7 @@ export default function ChatWidget() {
                 </button>
 
                 <span className="text-[10px] font-bold text-text-muted uppercase tracking-widest">
-                    {isListening ? `${timer}s` : isProcessing ? 'Wait...' : 'Tap to speak'}
+                    {isListening ? `${timer}s` : isProcessing ? 'Wait...' : isResponding ? 'Tap to interrupt' : 'Tap to speak'}
                 </span>
             </div>
         </div>

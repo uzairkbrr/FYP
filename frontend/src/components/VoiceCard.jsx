@@ -2,25 +2,28 @@ import React, { useRef } from 'react'
 import useVoiceRecorder from '../hooks/useVoiceRecorder'
 
 export default function VoiceCard() {
-    const { status, messages, timer, errorMessage, audioUrl, startRecording, stopRecording, reset } = useVoiceRecorder()
-    const audioRef = useRef(null)
+    const { status, messages, timer, errorMessage, audioUrl, startRecording, stopRecording, interruptAndRecord, reset } = useVoiceRecorder()
+    const localAudioRef = useRef(null)
 
-    const handleStartListening = () => startRecording()
-    const handleStopListening = () => stopRecording()
+    const handleMicClick = () => {
+        if (isListening) stopRecording()
+        else if (hasResponse) interruptAndRecord()
+        else startRecording()
+    }
 
     const handleReset = () => {
-        if (audioRef.current) {
-            audioRef.current.pause()
-            audioRef.current = null
+        if (localAudioRef.current) {
+            localAudioRef.current.pause()
+            localAudioRef.current = null
         }
         reset()
     }
 
     const handlePlayAudio = () => {
         if (audioUrl) {
-            if (audioRef.current) audioRef.current.pause()
-            audioRef.current = new Audio(audioUrl)
-            audioRef.current.play().catch(() => { })
+            if (localAudioRef.current) localAudioRef.current.pause()
+            localAudioRef.current = new Audio(audioUrl)
+            localAudioRef.current.play().catch(() => { })
         }
     }
 
@@ -56,7 +59,7 @@ export default function VoiceCard() {
                     <div className="flex flex-col md:flex-row px-8 pb-8 gap-8">
                         <div className="flex flex-col items-center justify-center md:w-[240px] shrink-0 pt-8">
                             <button
-                                onClick={isListening ? handleStopListening : handleStartListening}
+                                onClick={handleMicClick}
                                 disabled={isProcessing}
                                 className={`
                                     relative w-32 h-32 rounded-full flex items-center justify-center transition-all duration-300 border-2
@@ -64,7 +67,9 @@ export default function VoiceCard() {
                                         ? 'bg-primary border-primary scale-105 shadow-2xl shadow-primary/20'
                                         : isProcessing
                                             ? 'bg-background/50 border-border border-dashed cursor-not-allowed'
-                                            : 'bg-background border-border hover:border-primary/40 hover:bg-surface cursor-pointer text-text-primary'
+                                            : hasResponse
+                                                ? 'bg-primary border-primary cursor-pointer speaking-pulse'
+                                                : 'bg-background border-border hover:border-primary/40 hover:bg-surface cursor-pointer text-text-primary'
                                     }
                                 `}
                             >
@@ -78,6 +83,10 @@ export default function VoiceCard() {
                                         <path strokeLinecap="round" strokeLinejoin="round" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                                         <path strokeLinecap="round" strokeLinejoin="round" d="M9 10a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1v-4z" />
                                     </svg>
+                                ) : hasResponse ? (
+                                    <svg className="w-12 h-12 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
+                                    </svg>
                                 ) : (
                                     <svg className="w-12 h-12 text-text-secondary" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                                         <path strokeLinecap="round" strokeLinejoin="round" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
@@ -86,11 +95,11 @@ export default function VoiceCard() {
                             </button>
                             <div className="mt-6 flex flex-col items-center gap-2">
                                 <button
-                                    onClick={isListening ? handleStopListening : handleStartListening}
+                                    onClick={handleMicClick}
                                     disabled={isProcessing}
                                     className="px-8 py-2.5 rounded-full bg-background border border-border text-[10px] font-bold text-text-secondary hover:bg-surface transition-colors cursor-pointer uppercase tracking-widest"
                                 >
-                                    {isListening ? `Stop (${timer}s)` : 'Click to Start'}
+                                    {isListening ? `Stop (${timer}s)` : hasResponse ? 'Tap to interrupt' : 'Click to Start'}
                                 </button>
                                 {isProcessing && (
                                     <span className="text-[10px] text-text-muted font-medium animate-pulse">Processing your query...</span>

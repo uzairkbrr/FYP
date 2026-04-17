@@ -15,12 +15,17 @@ export default function useVoiceRecorder() {
     const chunksRef = useRef([])
     const timerRef = useRef(null)
     const streamRef = useRef(null)
+    const audioRef = useRef(null)
 
     // Cleanup on unmount
     useEffect(() => {
         return () => {
             clearInterval(timerRef.current)
             streamRef.current?.getTracks().forEach(t => t.stop())
+            if (audioRef.current) {
+                audioRef.current.pause()
+                audioRef.current = null
+            }
         }
     }, [])
 
@@ -81,6 +86,17 @@ export default function useVoiceRecorder() {
         }
     }, [])
 
+    const interruptAndRecord = useCallback(async () => {
+        // Stop any currently playing audio immediately
+        if (audioRef.current) {
+            audioRef.current.pause()
+            audioRef.current.currentTime = 0
+            audioRef.current = null
+        }
+        // Start a new recording right away
+        await startRecording()
+    }, [startRecording])
+
     const sendAudio = async (blob) => {
         setStatus('processing')
         try {
@@ -113,6 +129,11 @@ export default function useVoiceRecorder() {
             // Auto-play the response audio
             if (data.audio_url) {
                 const audio = new Audio(data.audio_url)
+                audioRef.current = audio
+                audio.onended = () => {
+                    audioRef.current = null
+                    setStatus('idle')
+                }
                 audio.play().catch(() => { })
             }
 
@@ -125,6 +146,10 @@ export default function useVoiceRecorder() {
     const reset = useCallback(() => {
         clearInterval(timerRef.current)
         streamRef.current?.getTracks().forEach(t => t.stop())
+        if (audioRef.current) {
+            audioRef.current.pause()
+            audioRef.current = null
+        }
         setStatus('idle')
         setMessages([])
         setTimer(0)
@@ -140,6 +165,7 @@ export default function useVoiceRecorder() {
         audioUrl,
         startRecording,
         stopRecording,
+        interruptAndRecord,
         reset,
     }
 }
