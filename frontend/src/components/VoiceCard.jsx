@@ -1,6 +1,61 @@
 import React, { useRef } from 'react'
 import useVoiceRecorder from '../hooks/useVoiceRecorder'
 
+// Parse a string into an array of { type: 'text' | 'link', ... } parts.
+function parseMarkdownLinks(text) {
+    const parts = []
+    const regex = /\[([^\]]+)\]\((https?:\/\/[^\)]+)\)/g
+    let lastIndex = 0
+    let match
+    while ((match = regex.exec(text)) !== null) {
+        if (match.index > lastIndex) {
+            parts.push({ type: 'text', content: text.slice(lastIndex, match.index) })
+        }
+        parts.push({ type: 'link', label: match[1], url: match[2] })
+        lastIndex = match.index + match[0].length
+    }
+    if (lastIndex < text.length) {
+        parts.push({ type: 'text', content: text.slice(lastIndex) })
+    }
+    return parts
+}
+
+function parseBold(text, keyPrefix) {
+    const segments = text.split(/\*\*([^*]+)\*\*/g)
+    return segments.map((seg, i) =>
+        i % 2 === 1
+            ? <strong key={`${keyPrefix}-${i}`}>{seg}</strong>
+            : <span key={`${keyPrefix}-${i}`}>{seg}</span>
+    )
+}
+
+function RichText({ text }) {
+    const parts = parseMarkdownLinks(text)
+    return (
+        <>
+            {parts.map((part, i) =>
+                part.type === 'link' ? (
+                    <a
+                        key={i}
+                        href={part.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        style={{
+                            color: 'var(--primary)',
+                            textDecoration: 'underline',
+                            wordBreak: 'break-word',
+                        }}
+                    >
+                        {part.label}
+                    </a>
+                ) : (
+                    <React.Fragment key={i}>{parseBold(part.content, `b${i}`)}</React.Fragment>
+                )
+            )}
+        </>
+    )
+}
+
 export default function VoiceCard() {
     const { status, messages, timer, errorMessage, audioUrl, startRecording, stopRecording, interruptAudio, reset } = useVoiceRecorder()
     const localAudioRef = useRef(null)
@@ -125,7 +180,7 @@ export default function VoiceCard() {
                                                             {msg.role === 'user' ? 'You:' : 'Mahir:'}
                                                         </span>
                                                         <p className={`text-sm leading-relaxed ${msg.role === 'user' ? 'text-text-secondary' : 'text-text-primary font-medium'}`}>
-                                                            {msg.text}
+                                                            {msg.role === 'user' ? msg.text : <RichText text={msg.text} />}
                                                         </p>
                                                     </div>
                                                 </div>

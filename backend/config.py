@@ -11,6 +11,7 @@ load_dotenv(dotenv_path=str(PROJECT_DIR / ".env"))
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 DEEPGRAM_API_KEY = os.getenv("DEEPGRAM_API_KEY")
 ELEVENLABS_API_KEY = os.getenv("ELEVENLABS_API_KEY")
+UPLIFTAI_API_KEY = os.getenv("UPLIFTAI_API_KEY", "")
 
 # ChromaDB
 CHROMA_PERSIST_DIR = str(PROJECT_DIR / "chroma_db")

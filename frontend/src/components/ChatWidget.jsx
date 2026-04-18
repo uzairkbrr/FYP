@@ -3,6 +3,64 @@ import useVoiceRecorder from '../hooks/useVoiceRecorder'
 
 const MAX_SECONDS = 30
 
+// Parse a string into an array of { type: 'text' | 'link', ... } parts.
+// Splits on markdown links [label](url).
+function parseMarkdownLinks(text) {
+    const parts = []
+    const regex = /\[([^\]]+)\]\((https?:\/\/[^\)]+)\)/g
+    let lastIndex = 0
+    let match
+    while ((match = regex.exec(text)) !== null) {
+        if (match.index > lastIndex) {
+            parts.push({ type: 'text', content: text.slice(lastIndex, match.index) })
+        }
+        parts.push({ type: 'link', label: match[1], url: match[2] })
+        lastIndex = match.index + match[0].length
+    }
+    if (lastIndex < text.length) {
+        parts.push({ type: 'text', content: text.slice(lastIndex) })
+    }
+    return parts
+}
+
+// Split a plain text segment on **bold** markers, returning React nodes.
+function parseBold(text, keyPrefix) {
+    const segments = text.split(/\*\*([^*]+)\*\*/g)
+    return segments.map((seg, i) =>
+        i % 2 === 1
+            ? <strong key={`${keyPrefix}-${i}`}>{seg}</strong>
+            : <span key={`${keyPrefix}-${i}`}>{seg}</span>
+    )
+}
+
+// Render text with markdown links and bold. Used in bot bubbles.
+function RichText({ text }) {
+    const parts = parseMarkdownLinks(text)
+    return (
+        <>
+            {parts.map((part, i) =>
+                part.type === 'link' ? (
+                    <a
+                        key={i}
+                        href={part.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        style={{
+                            color: 'var(--primary)',
+                            textDecoration: 'underline',
+                            wordBreak: 'break-word',
+                        }}
+                    >
+                        {part.label}
+                    </a>
+                ) : (
+                    <React.Fragment key={i}>{parseBold(part.content, `b${i}`)}</React.Fragment>
+                )
+            )}
+        </>
+    )
+}
+
 export default function ChatWidget() {
     const [isOpen, setIsOpen] = useState(false)
     const [showContact, setShowContact] = useState(false)
@@ -203,7 +261,9 @@ export default function ChatWidget() {
                                 ? 'bg-primary text-white rounded-2xl rounded-br-sm px-4 py-2.5'
                                 : `bg-background border border-border text-text-primary rounded-2xl rounded-bl-sm px-4 py-2.5${hasAudio ? ' pr-11' : ''}`
                                 }`}>
-                                <p className="text-sm leading-relaxed whitespace-pre-wrap">{msg.text}</p>
+                                <p className="text-sm leading-relaxed whitespace-pre-wrap">
+                                    {isUser ? msg.text : <RichText text={msg.text} />}
+                                </p>
                                 {!isUser && hasAudio && (
                                     <button
                                         onClick={() => handleSpeakerClick(msg)}
