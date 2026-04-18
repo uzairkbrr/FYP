@@ -20,18 +20,13 @@ export default function Hero({ onStartQuery }) {
                     with natural human-like responses.
                 </p>
 
-                {/* Buttons */}
-                <div className="flex flex-col sm:flex-row items-center justify-center gap-5">
+                {/* CTA — scrolls to the voice section */}
+                <div className="flex items-center justify-center">
                     <button
                         onClick={onStartQuery}
-                        className="group inline-flex items-center gap-3 px-8 py-4 rounded-2xl bg-primary text-white font-bold text-lg shadow-xl shadow-primary/25 hover:bg-primary-dark transition-all duration-300 hover:-translate-y-1 cursor-pointer"
+                        className="inline-flex items-center px-8 py-4 rounded-2xl bg-primary text-white font-bold text-lg shadow-xl shadow-primary/25 hover:bg-primary-dark transition-all duration-300 hover:-translate-y-1 cursor-pointer"
                     >
-                        <div className="w-6 h-6 rounded-lg bg-white/20 flex items-center justify-center group-hover:rotate-12 transition-transform">
-                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                                <path strokeLinecap="round" strokeLinejoin="round" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
-                            </svg>
-                        </div>
-                        Start Speaking Now
+                        Talk to Mahir
                     </button>
                 </div>
             </div>

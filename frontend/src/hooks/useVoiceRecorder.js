@@ -27,11 +27,25 @@ export default function useVoiceRecorder(options = {}) {
     const streamRef = useRef(null)
     const audioRef = useRef(null)
     const messagesRef = useRef(messages)
+    // Web Audio nodes for the live waveform. Non-critical — recording still
+    // works even if this setup fails. Components read analyserRef.current
+    // inside an rAF loop to draw live frequency data.
+    const analyserRef = useRef(null)
+    const audioCtxRef = useRef(null)
 
     // Keep ref in sync so async callbacks always see the latest messages
     useEffect(() => {
         messagesRef.current = messages
     }, [messages])
+
+    // Tear down the Web Audio graph. Safe to call multiple times.
+    const teardownAnalyser = () => {
+        analyserRef.current = null
+        if (audioCtxRef.current) {
+            try { audioCtxRef.current.close() } catch { /* ignore */ }
+            audioCtxRef.current = null
+        }
+    }
 
     // Cleanup on unmount
     useEffect(() => {
@@ -42,6 +56,7 @@ export default function useVoiceRecorder(options = {}) {
                 audioRef.current.pause()
                 audioRef.current = null
             }
+            teardownAnalyser()
         }
     }, [])
 
@@ -62,6 +77,25 @@ export default function useVoiceRecorder(options = {}) {
             recorderRef.current = recorder
             chunksRef.current = []
 
+            // Set up Web Audio analyser for the live waveform visualization.
+            // Non-critical — if this fails the recording still works.
+            try {
+                const AC = window.AudioContext || window.webkitAudioContext
+                const audioCtx = new AC()
+                if (audioCtx.state === 'suspended') {
+                    await audioCtx.resume().catch(() => { })
+                }
+                const source = audioCtx.createMediaStreamSource(stream)
+                const analyser = audioCtx.createAnalyser()
+                analyser.fftSize = 128
+                analyser.smoothingTimeConstant = 0.75
+                source.connect(analyser)
+                audioCtxRef.current = audioCtx
+                analyserRef.current = analyser
+            } catch (e) {
+                console.warn('[useVoiceRecorder] analyser setup failed:', e)
+            }
+
             recorder.ondataavailable = (e) => {
                 if (e.data.size > 0) chunksRef.current.push(e.data)
             }
@@ -69,6 +103,7 @@ export default function useVoiceRecorder(options = {}) {
             recorder.onstop = () => {
                 clearInterval(timerRef.current)
                 stream.getTracks().forEach(t => t.stop())
+                teardownAnalyser()
                 const blob = new Blob(chunksRef.current, { type: recorder.mimeType || 'audio/webm' })
                 sendAudio(blob)
             }
@@ -238,6 +273,7 @@ export default function useVoiceRecorder(options = {}) {
             audioRef.current.pause()
             audioRef.current = null
         }
+        teardownAnalyser()
         setStatus('idle')
         setMessages([])
         setTimer(0)
@@ -251,6 +287,7 @@ export default function useVoiceRecorder(options = {}) {
         timer,
         errorMessage,
         audioUrl,
+        analyserRef,
         startRecording,
         stopRecording,
         interruptAudio,

@@ -1,5 +1,6 @@
 import React, { useRef } from 'react'
 import useVoiceRecorder from '../hooks/useVoiceRecorder'
+import LiveWaveform from './LiveWaveform'
 
 // Parse a string into an array of { type: 'text' | 'link', ... } parts.
 function parseMarkdownLinks(text) {
@@ -57,7 +58,7 @@ function RichText({ text }) {
 }
 
 export default function VoiceCard() {
-    const { status, messages, timer, errorMessage, audioUrl, startRecording, stopRecording, interruptAudio, reset } = useVoiceRecorder()
+    const { status, messages, timer, errorMessage, audioUrl, analyserRef, startRecording, stopRecording, interruptAudio, reset } = useVoiceRecorder()
     const localAudioRef = useRef(null)
 
     const handleMicClick = () => {
@@ -113,42 +114,55 @@ export default function VoiceCard() {
 
                     <div className="flex flex-col md:flex-row px-8 pb-8 gap-8">
                         <div className="flex flex-col items-center justify-center md:w-[240px] shrink-0 pt-8">
-                            <button
-                                onClick={handleMicClick}
-                                disabled={isProcessing}
-                                className={`
-                                    relative w-32 h-32 rounded-full flex items-center justify-center transition-all duration-300 border-2
-                                    ${isListening
-                                        ? 'bg-primary border-primary scale-105 shadow-2xl shadow-primary/20'
-                                        : isProcessing
-                                            ? 'bg-background/50 border-border border-dashed cursor-not-allowed'
-                                            : hasResponse
-                                                ? 'bg-primary border-primary cursor-pointer speaking-pulse'
-                                                : 'bg-background border-border hover:border-primary/40 hover:bg-surface cursor-pointer text-text-primary'
-                                    }
-                                `}
-                            >
-                                {isProcessing ? (
-                                    <svg className="w-12 h-12 text-primary animate-spin" fill="none" viewBox="0 0 24 24">
-                                        <circle className="opacity-10" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                                        <path className="opacity-90" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                                    </svg>
-                                ) : isListening ? (
-                                    <svg className="w-12 h-12 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                                        <path strokeLinecap="round" strokeLinejoin="round" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                        <path strokeLinecap="round" strokeLinejoin="round" d="M9 10a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1v-4z" />
-                                    </svg>
-                                ) : hasResponse ? (
-                                    <svg className="w-12 h-12 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                                        <path strokeLinecap="round" strokeLinejoin="round" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
-                                    </svg>
-                                ) : (
-                                    <svg className="w-12 h-12 text-text-secondary" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                                        <path strokeLinecap="round" strokeLinejoin="round" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
-                                    </svg>
+                            {/* Mic button wrapped so the circular waveform can sit around it */}
+                            <div className="relative flex items-center justify-center" style={{ width: 208, height: 208 }}>
+                                {isListening && (
+                                    <LiveWaveform
+                                        analyserRef={analyserRef}
+                                        size={208}
+                                        innerRadius={72}
+                                        maxBarLength={28}
+                                        barCount={48}
+                                    />
                                 )}
-                            </button>
-                            <div className="mt-6 flex flex-col items-center gap-2">
+                                <button
+                                    onClick={handleMicClick}
+                                    disabled={isProcessing}
+                                    className={`
+                                        relative w-32 h-32 rounded-full flex items-center justify-center transition-all duration-300 border-2
+                                        ${isListening
+                                            ? 'bg-primary border-primary scale-105 shadow-2xl shadow-primary/20'
+                                            : isProcessing
+                                                ? 'bg-background/50 border-border border-dashed cursor-not-allowed'
+                                                : hasResponse
+                                                    ? 'bg-primary border-primary cursor-pointer speaking-pulse'
+                                                    : 'bg-background border-border hover:border-primary/40 hover:bg-surface cursor-pointer text-text-primary'
+                                        }
+                                    `}
+                                >
+                                    {isProcessing ? (
+                                        <svg className="w-12 h-12 text-primary animate-spin" fill="none" viewBox="0 0 24 24">
+                                            <circle className="opacity-10" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                                            <path className="opacity-90" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                                        </svg>
+                                    ) : isListening ? (
+                                        <svg className="w-12 h-12 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                            <path strokeLinecap="round" strokeLinejoin="round" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                            <path strokeLinecap="round" strokeLinejoin="round" d="M9 10a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1v-4z" />
+                                        </svg>
+                                    ) : hasResponse ? (
+                                        <svg className="w-12 h-12 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                                            <path strokeLinecap="round" strokeLinejoin="round" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
+                                        </svg>
+                                    ) : (
+                                        <svg className="w-12 h-12 text-text-secondary" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                                            <path strokeLinecap="round" strokeLinejoin="round" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
+                                        </svg>
+                                    )}
+                                </button>
+                            </div>
+
+                            <div className="mt-4 flex flex-col items-center gap-2">
                                 <button
                                     onClick={handleMicClick}
                                     disabled={isProcessing}
