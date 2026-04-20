@@ -119,7 +119,6 @@ export default function VoiceCard() {
 
                     <div className="flex flex-col md:flex-row px-8 pb-8 gap-8">
                         <div className="flex flex-col items-center justify-center md:w-[240px] shrink-0 pt-8">
-                            {/* Status text — lives ABOVE the mic, large enough for demo visibility */}
                             <div className="h-7 mb-3 flex items-center justify-center">
                                 {statusText && (
                                     <span
@@ -130,7 +129,6 @@ export default function VoiceCard() {
                                 )}
                             </div>
 
-                            {/* Mic button wrapped so the circular waveform can sit around it */}
                             <div className="relative flex items-center justify-center" style={{ width: 208, height: 208 }}>
                                 {isListening && (
                                     <LiveWaveform
@@ -195,7 +193,7 @@ export default function VoiceCard() {
                                     {messages.length === 0 ? (
                                         <div className="flex flex-col items-center justify-center h-full opacity-40 select-none text-center">
                                             <p className="text-text-muted text-base font-medium italic tracking-wide">
-                                                Go ahead, ask Mahir anything about the university...
+                                                Go ahead, ask Mahir anything about FAST Peshawar...
                                             </p>
                                         </div>
                                     ) : (
