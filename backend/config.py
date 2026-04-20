@@ -22,7 +22,9 @@ GPT_MODEL = "gpt-4o-mini"
 RAG_TOP_K = 15
 
 # ElevenLabs
-ELEVENLABS_VOICE_ID = "EXAVITQu4vr4xnSDxMaL"  # Sarah - female, mature, reassuring (premade)
+# Rachel — ElevenLabs' flagship natural voice (female, calm, American).
+# Other great options: Aria "9BWtsMINqrJLrRacOk9x", Sarah "EXAVITQu4vr4xnSDxMaL".
+ELEVENLABS_VOICE_ID = "EXAVITQu4vr4xnSDxMaL"
 ELEVENLABS_MODEL = "eleven_multilingual_v2"
 
 # Admin panel

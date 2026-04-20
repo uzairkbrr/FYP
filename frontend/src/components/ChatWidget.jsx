@@ -96,6 +96,21 @@ export default function ChatWidget() {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
     }, [messages, status])
 
+    // Global keyboard shortcuts dispatched from anywhere on the page
+    useEffect(() => {
+        const onOpen = () => {
+            setIsOpen(true)
+            setTimeout(() => inputRef.current?.focus(), 120)
+        }
+        const onClose = () => setIsOpen(false)
+        window.addEventListener('mahir:open-widget', onOpen)
+        window.addEventListener('mahir:close-widget', onClose)
+        return () => {
+            window.removeEventListener('mahir:open-widget', onOpen)
+            window.removeEventListener('mahir:close-widget', onClose)
+        }
+    }, [])
+
     const isListening = status === 'listening'
     const isProcessing = status === 'processing'
     const isPlaying = playingId !== null
