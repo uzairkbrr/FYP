@@ -17,6 +17,9 @@ UPLIFTAI_API_KEY = os.getenv("UPLIFTAI_API_KEY", "")
 CHROMA_PERSIST_DIR = str(PROJECT_DIR / "chroma_db")
 CHROMA_COLLECTION = "sample"
 
+# SQLite — moderator contact messages
+MODERATOR_DB_PATH = str(PROJECT_DIR / "moderator_messages.db")
+
 # LLM
 GPT_MODEL = "gpt-4o-mini"
 RAG_TOP_K = 15

@@ -1,6 +1,11 @@
+import io
 import json
 import secrets
+import sqlite3
 import traceback
+from contextlib import contextmanager
+from datetime import datetime, timezone
+
 import httpx
 from fastapi import FastAPI, UploadFile, File, Form, HTTPException, Depends
 from fastapi.middleware.cors import CORSMiddleware
@@ -11,7 +16,7 @@ from .stt import transcribe_audio
 from .transliterate import urdu_to_roman
 from .rag import generate_response, ingest_text, get_collection_stats
 from .tts import synthesize_speech
-from .config import ADMIN_USERNAME, ADMIN_PASSWORD
+from .config import ADMIN_USERNAME, ADMIN_PASSWORD, MODERATOR_DB_PATH
 
 app = FastAPI(title="Mahir on Call API")
 
@@ -165,7 +170,29 @@ def health():
 
 _security = HTTPBasic()
 
-MAX_UPLOAD_SIZE = 2 * 1024 * 1024  # 2 MB
+MAX_UPLOAD_SIZE_TEXT = 2 * 1024 * 1024   # 2 MB for .txt / .docx
+MAX_UPLOAD_SIZE_PDF = 10 * 1024 * 1024   # 10 MB for .pdf
+SUPPORTED_EXTENSIONS = (".txt", ".pdf", ".docx")
+
+
+def _extract_pdf_text(pdf_bytes: bytes) -> str:
+    import PyPDF2  # lazy import so dev without pypdf2 still boots the rest
+
+    reader = PyPDF2.PdfReader(io.BytesIO(pdf_bytes))
+    parts = []
+    for page in reader.pages:
+        try:
+            parts.append(page.extract_text() or "")
+        except Exception:
+            parts.append("")
+    return "\n\n".join(parts).strip()
+
+
+def _extract_docx_text(docx_bytes: bytes) -> str:
+    import docx  # lazy import
+
+    doc = docx.Document(io.BytesIO(docx_bytes))
+    return "\n\n".join(p.text for p in doc.paragraphs if p.text.strip()).strip()
 
 
 def _verify_admin(credentials: HTTPBasicCredentials = Depends(_security)):
@@ -185,23 +212,52 @@ def admin_ingest(
     file: UploadFile = File(...),
     _user: str = Depends(_verify_admin),
 ):
-    """Upload a .txt file to chunk, embed, and add to the knowledge base."""
-    if not file.filename or not file.filename.lower().endswith(".txt"):
-        raise HTTPException(status_code=400, detail="Only .txt files are accepted.")
+    """Upload a .txt, .pdf, or .docx file to chunk, embed, and add to the KB."""
+    filename = file.filename or ""
+    lower = filename.lower()
+
+    if not any(lower.endswith(ext) for ext in SUPPORTED_EXTENSIONS):
+        raise HTTPException(
+            status_code=400,
+            detail="Only .txt, .pdf, and .docx files are supported",
+        )
 
     content_bytes = file.file.read()
-    if len(content_bytes) > MAX_UPLOAD_SIZE:
-        raise HTTPException(status_code=400, detail="File exceeds 2 MB limit.")
 
+    # Size limits — PDFs get 10 MB, text formats keep 2 MB
+    if lower.endswith(".pdf"):
+        if len(content_bytes) > MAX_UPLOAD_SIZE_PDF:
+            raise HTTPException(status_code=400, detail="PDF exceeds 10 MB limit.")
+    else:
+        if len(content_bytes) > MAX_UPLOAD_SIZE_TEXT:
+            raise HTTPException(status_code=400, detail="File exceeds 2 MB limit.")
+
+    # Extract plain text in memory — pipeline downstream is unchanged.
     try:
-        text = content_bytes.decode("utf-8")
-    except UnicodeDecodeError:
-        raise HTTPException(status_code=400, detail="File must be valid UTF-8 text.")
+        if lower.endswith(".txt"):
+            try:
+                text = content_bytes.decode("utf-8")
+            except UnicodeDecodeError:
+                raise HTTPException(status_code=400, detail="File must be valid UTF-8 text.")
+        elif lower.endswith(".pdf"):
+            text = _extract_pdf_text(content_bytes)
+            if not text:
+                raise HTTPException(
+                    status_code=400,
+                    detail="Could not extract text from PDF. Try a text-based PDF rather than a scanned image.",
+                )
+        else:  # .docx
+            text = _extract_docx_text(content_bytes)
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"[admin/ingest] extraction error: {e}")
+        raise HTTPException(status_code=400, detail="Could not read file content.")
 
     if not text.strip():
         raise HTTPException(status_code=400, detail="File is empty.")
 
-    source_label = file.filename
+    source_label = filename
     print(f"[admin/ingest] Ingesting {source_label} ({len(text)} chars)...")
     result = ingest_text(text, source_label)
     print(f"[admin/ingest] Done — {result['chunks_added']} chunks added")
@@ -213,3 +269,108 @@ def admin_ingest(
 def admin_stats(_user: str = Depends(_verify_admin)):
     """Return knowledge base statistics."""
     return get_collection_stats()
+
+
+# ---------------------------------------------------------------------------
+# Moderator messages (SQLite)
+# ---------------------------------------------------------------------------
+
+
+@contextmanager
+def _db():
+    conn = sqlite3.connect(MODERATOR_DB_PATH)
+    conn.row_factory = sqlite3.Row
+    try:
+        yield conn
+    finally:
+        conn.close()
+
+
+def _init_moderator_db():
+    with _db() as conn:
+        conn.execute(
+            """
+            CREATE TABLE IF NOT EXISTS moderator_messages (
+                id         INTEGER PRIMARY KEY AUTOINCREMENT,
+                email      TEXT NOT NULL,
+                phone      TEXT NOT NULL,
+                message    TEXT NOT NULL,
+                timestamp  TEXT NOT NULL,
+                is_read    INTEGER NOT NULL DEFAULT 0
+            )
+            """
+        )
+        conn.commit()
+
+
+_init_moderator_db()
+
+
+class ContactModeratorRequest(BaseModel):
+    email: str
+    phone: str
+    message: str
+    timestamp: str | None = None
+
+
+@app.post("/contact-moderator")
+def contact_moderator(body: ContactModeratorRequest):
+    email = (body.email or "").strip()
+    phone = (body.phone or "").strip()
+    message = (body.message or "").strip()
+
+    if not email or not phone or not message:
+        raise HTTPException(status_code=400, detail="All fields are required.")
+
+    ts = (body.timestamp or "").strip()
+    if not ts:
+        ts = datetime.now(timezone.utc).isoformat()
+
+    try:
+        with _db() as conn:
+            conn.execute(
+                "INSERT INTO moderator_messages (email, phone, message, timestamp) VALUES (?, ?, ?, ?)",
+                (email, phone, message, ts),
+            )
+            conn.commit()
+    except Exception as e:
+        print(f"[contact-moderator] DB error: {e}")
+        raise HTTPException(status_code=500, detail="Could not save message.")
+
+    return {"success": True}
+
+
+@app.get("/admin/messages")
+def admin_messages(_user: str = Depends(_verify_admin)):
+    with _db() as conn:
+        rows = conn.execute(
+            "SELECT id, email, phone, message, timestamp, is_read "
+            "FROM moderator_messages ORDER BY id DESC"
+        ).fetchall()
+
+    return {
+        "messages": [
+            {
+                "id": r["id"],
+                "email": r["email"],
+                "phone": r["phone"],
+                "message": r["message"],
+                "timestamp": r["timestamp"],
+                "is_read": bool(r["is_read"]),
+            }
+            for r in rows
+        ]
+    }
+
+
+@app.post("/admin/messages/{message_id}/read")
+def admin_mark_read(message_id: int, _user: str = Depends(_verify_admin)):
+    with _db() as conn:
+        cur = conn.execute(
+            "UPDATE moderator_messages SET is_read = 1 WHERE id = ?",
+            (message_id,),
+        )
+        conn.commit()
+        if cur.rowcount == 0:
+            raise HTTPException(status_code=404, detail="Message not found.")
+    return {"success": True}

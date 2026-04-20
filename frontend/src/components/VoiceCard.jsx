@@ -2,7 +2,6 @@ import React, { useRef } from 'react'
 import useVoiceRecorder from '../hooks/useVoiceRecorder'
 import LiveWaveform from './LiveWaveform'
 
-// Parse a string into an array of { type: 'text' | 'link', ... } parts.
 function parseMarkdownLinks(text) {
     const parts = []
     const regex = /\[([^\]]+)\]\((https?:\/\/[^\)]+)\)/g
@@ -58,7 +57,7 @@ function RichText({ text }) {
 }
 
 export default function VoiceCard() {
-    const { status, messages, timer, errorMessage, audioUrl, analyserRef, startRecording, stopRecording, interruptAudio, reset } = useVoiceRecorder()
+    const { status, messages, errorMessage, audioUrl, analyserRef, startRecording, stopRecording, interruptAudio, reset } = useVoiceRecorder()
     const localAudioRef = useRef(null)
 
     const handleMicClick = () => {
@@ -87,24 +86,30 @@ export default function VoiceCard() {
     const isProcessing = status === 'processing'
     const hasResponse = status === 'responding'
 
+    const statusText =
+        isListening ? 'Recording'
+            : isProcessing ? 'Processing your query'
+                : hasResponse ? 'Speaking'
+                    : ''
+
     return (
         <section id="voice-section" className="py-16 px-6">
             <div className="max-w-5xl mx-auto">
                 <div className="rounded-xl border border-border/60 bg-surface/50 backdrop-blur-sm overflow-hidden shadow-sm">
                     <div className="px-10 py-6 border-b border-border/20 flex items-center justify-between">
-                        <h3 className="text-[10px] font-bold text-text-muted uppercase tracking-[0.4em]">Transcript</h3>
+                        <h3 className="text-xs font-bold text-text-muted uppercase tracking-[0.4em]">Transcript</h3>
 
                         {hasResponse && (
                             <div className="flex items-center gap-3">
                                 <button
                                     onClick={handlePlayAudio}
-                                    className="px-4 py-1.5 rounded-full bg-primary text-white text-[9px] font-bold uppercase tracking-widest hover:bg-primary-dark transition-all shadow-sm cursor-pointer"
+                                    className="px-4 py-1.5 rounded-full bg-primary text-white text-[11px] font-bold uppercase tracking-widest hover:bg-primary-dark transition-all shadow-sm cursor-pointer"
                                 >
                                     Listen
                                 </button>
                                 <button
                                     onClick={handleReset}
-                                    className="px-4 py-1.5 rounded-full bg-surface text-text-primary text-[9px] font-bold uppercase tracking-widest hover:bg-background transition-all border border-border cursor-pointer"
+                                    className="px-4 py-1.5 rounded-full bg-surface text-text-primary text-[11px] font-bold uppercase tracking-widest hover:bg-background transition-all border border-border cursor-pointer"
                                 >
                                     New Conversation
                                 </button>
@@ -114,6 +119,17 @@ export default function VoiceCard() {
 
                     <div className="flex flex-col md:flex-row px-8 pb-8 gap-8">
                         <div className="flex flex-col items-center justify-center md:w-[240px] shrink-0 pt-8">
+                            {/* Status text — lives ABOVE the mic, large enough for demo visibility */}
+                            <div className="h-7 mb-3 flex items-center justify-center">
+                                {statusText && (
+                                    <span
+                                        className={`text-[18px] font-medium ${isProcessing ? 'text-text-muted animate-pulse' : 'text-primary'}`}
+                                    >
+                                        {statusText}
+                                    </span>
+                                )}
+                            </div>
+
                             {/* Mic button wrapped so the circular waveform can sit around it */}
                             <div className="relative flex items-center justify-center" style={{ width: 208, height: 208 }}>
                                 {isListening && (
@@ -166,13 +182,10 @@ export default function VoiceCard() {
                                 <button
                                     onClick={handleMicClick}
                                     disabled={isProcessing}
-                                    className="px-8 py-2.5 rounded-full bg-background border border-border text-[10px] font-bold text-text-secondary hover:bg-surface transition-colors cursor-pointer uppercase tracking-widest"
+                                    className="px-8 py-2.5 rounded-full bg-background border border-border text-[16px] font-bold text-text-secondary hover:bg-surface transition-colors cursor-pointer uppercase tracking-widest"
                                 >
-                                    {isListening ? `Stop (${timer}s)` : hasResponse ? 'Tap to interrupt' : 'Click to Start'}
+                                    {isListening ? 'Stop' : hasResponse ? 'Tap to interrupt' : 'Click to Start'}
                                 </button>
-                                {isProcessing && (
-                                    <span className="text-[10px] text-text-muted font-medium animate-pulse">Processing your query</span>
-                                )}
                             </div>
                         </div>
 
@@ -180,8 +193,8 @@ export default function VoiceCard() {
                             <div className="flex-1 min-h-[400px] flex flex-col bg-background/30 rounded-xl border border-border/40 p-6">
                                 <div className="flex-1 overflow-y-auto space-y-4 scrollbar-thin pr-4">
                                     {messages.length === 0 ? (
-                                        <div className="flex flex-col items-center justify-center h-full opacity-30 select-none text-center">
-                                            <p className="text-text-muted text-xs font-medium italic tracking-wide">
+                                        <div className="flex flex-col items-center justify-center h-full opacity-40 select-none text-center">
+                                            <p className="text-text-muted text-base font-medium italic tracking-wide">
                                                 Go ahead, ask Mahir anything about the university...
                                             </p>
                                         </div>
@@ -190,10 +203,10 @@ export default function VoiceCard() {
                                             {messages.map((msg, i) => (
                                                 <div key={i} className="group transition-all">
                                                     <div className="flex items-start gap-4">
-                                                        <span className={`text-[10px] font-black uppercase tracking-[0.2em] mt-1 shrink-0 w-16 ${msg.role === 'user' ? 'text-text-muted' : 'text-primary'}`}>
+                                                        <span className={`text-[11px] font-black uppercase tracking-[0.2em] mt-1.5 shrink-0 w-16 ${msg.role === 'user' ? 'text-text-muted' : 'text-primary'}`}>
                                                             {msg.role === 'user' ? 'You:' : 'Mahir:'}
                                                         </span>
-                                                        <p className={`text-sm leading-relaxed ${msg.role === 'user' ? 'text-text-secondary' : 'text-text-primary font-medium'}`}>
+                                                        <p className={`text-base leading-relaxed ${msg.role === 'user' ? 'text-text-secondary' : 'text-text-primary font-medium'}`}>
                                                             {msg.role === 'user' ? msg.text : <RichText text={msg.text} />}
                                                         </p>
                                                     </div>
@@ -205,8 +218,8 @@ export default function VoiceCard() {
 
                                 {(status === 'error' || errorMessage) && (
                                     <div className="mt-6 p-4 rounded bg-red-50 text-center border border-red-100">
-                                        <p className="text-red-800 text-[10px] font-bold uppercase tracking-widest">
-                                            {errorMessage || 'Something went wrong. Please try again.'}
+                                        <p className="text-red-800 text-xs font-bold uppercase tracking-widest">
+                                            {errorMessage || 'Please, try again'}
                                         </p>
                                     </div>
                                 )}

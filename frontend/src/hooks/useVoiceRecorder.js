@@ -2,6 +2,7 @@ import { useState, useRef, useCallback, useEffect } from 'react'
 
 const API_URL = 'http://localhost:8000'
 const MAX_SECONDS = 30
+const GENERIC_ERROR = 'Please, try again'
 
 function makeId() {
     return `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
@@ -17,7 +18,6 @@ export default function useVoiceRecorder(options = {}) {
     const [status, setStatus] = useState('idle')
     // idle | listening | processing | responding | error
     const [messages, setMessages] = useState([])
-    const [timer, setTimer] = useState(0)
     const [errorMessage, setErrorMessage] = useState('')
     const [audioUrl, setAudioUrl] = useState(null)
 
@@ -27,18 +27,13 @@ export default function useVoiceRecorder(options = {}) {
     const streamRef = useRef(null)
     const audioRef = useRef(null)
     const messagesRef = useRef(messages)
-    // Web Audio nodes for the live waveform. Non-critical — recording still
-    // works even if this setup fails. Components read analyserRef.current
-    // inside an rAF loop to draw live frequency data.
     const analyserRef = useRef(null)
     const audioCtxRef = useRef(null)
 
-    // Keep ref in sync so async callbacks always see the latest messages
     useEffect(() => {
         messagesRef.current = messages
     }, [messages])
 
-    // Tear down the Web Audio graph. Safe to call multiple times.
     const teardownAnalyser = () => {
         analyserRef.current = null
         if (audioCtxRef.current) {
@@ -47,7 +42,6 @@ export default function useVoiceRecorder(options = {}) {
         }
     }
 
-    // Cleanup on unmount
     useEffect(() => {
         return () => {
             clearInterval(timerRef.current)
@@ -77,8 +71,6 @@ export default function useVoiceRecorder(options = {}) {
             recorderRef.current = recorder
             chunksRef.current = []
 
-            // Set up Web Audio analyser for the live waveform visualization.
-            // Non-critical — if this fails the recording still works.
             try {
                 const AC = window.AudioContext || window.webkitAudioContext
                 const audioCtx = new AC()
@@ -92,8 +84,8 @@ export default function useVoiceRecorder(options = {}) {
                 source.connect(analyser)
                 audioCtxRef.current = audioCtx
                 analyserRef.current = analyser
-            } catch (e) {
-                console.warn('[useVoiceRecorder] analyser setup failed:', e)
+            } catch {
+                /* non-critical */
             }
 
             recorder.ondataavailable = (e) => {
@@ -110,24 +102,19 @@ export default function useVoiceRecorder(options = {}) {
 
             recorder.start(250)
             setStatus('listening')
-            setTimer(0)
 
+            // Auto-stop after MAX_SECONDS. Timer is internal-only, not exposed.
             let sec = 0
             timerRef.current = setInterval(() => {
                 sec++
-                setTimer(sec)
                 if (sec >= MAX_SECONDS) {
                     recorderRef.current?.stop()
                 }
             }, 1000)
 
-        } catch (err) {
+        } catch {
             setStatus('error')
-            setErrorMessage(
-                err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError'
-                    ? 'Microphone permission denied. Please allow microphone access in your browser settings.'
-                    : 'Could not access microphone. Please check your device.'
-            )
+            setErrorMessage(GENERIC_ERROR)
         }
     }, [])
 
@@ -137,8 +124,6 @@ export default function useVoiceRecorder(options = {}) {
         }
     }, [])
 
-    // Stop any audio managed by the hook and return to idle.
-    // Does NOT start a new recording — caller must tap mic again.
     const interruptAudio = useCallback(() => {
         if (audioRef.current) {
             audioRef.current.pause()
@@ -154,7 +139,6 @@ export default function useVoiceRecorder(options = {}) {
             const formData = new FormData()
             formData.append('audio', blob, 'recording.webm')
 
-            // Build conversation history from last 6 messages (read from ref)
             const history = messagesRef.current.slice(-6).map(m => ({
                 role: m.role === 'bot' ? 'assistant' : 'user',
                 content: m.text,
@@ -167,8 +151,7 @@ export default function useVoiceRecorder(options = {}) {
             })
 
             if (!res.ok) {
-                const err = await res.json().catch(() => ({}))
-                throw new Error(err.detail || 'Server error')
+                throw new Error(GENERIC_ERROR)
             }
 
             const data = await res.json()
@@ -195,7 +178,6 @@ export default function useVoiceRecorder(options = {}) {
             setMessages(prev => [...prev, ...newMsgs])
             setAudioUrl(data.audio_url || null)
 
-            // Auto-play only if opted in (VoiceCard = yes, ChatWidget = no)
             if (autoPlay && data.audio_url) {
                 setStatus('responding')
                 const audio = new Audio(data.audio_url)
@@ -209,13 +191,12 @@ export default function useVoiceRecorder(options = {}) {
                 setStatus('idle')
             }
 
-        } catch (err) {
+        } catch {
             setStatus('error')
-            setErrorMessage(err.message || 'Failed to process your query. Please try again.')
+            setErrorMessage(GENERIC_ERROR)
         }
     }
 
-    // Text query: skips STT, hits /text-query endpoint
     const sendTextQuery = useCallback(async (text) => {
         const trimmed = (text || '').trim()
         if (!trimmed) return
@@ -243,8 +224,7 @@ export default function useVoiceRecorder(options = {}) {
             })
 
             if (!res.ok) {
-                const err = await res.json().catch(() => ({}))
-                throw new Error(err.detail || 'Server error')
+                throw new Error(GENERIC_ERROR)
             }
 
             const data = await res.json()
@@ -260,9 +240,9 @@ export default function useVoiceRecorder(options = {}) {
             setAudioUrl(data.audio_url || null)
             setStatus('idle')
 
-        } catch (err) {
+        } catch {
             setStatus('error')
-            setErrorMessage(err.message || 'Failed to process your query. Please try again.')
+            setErrorMessage(GENERIC_ERROR)
         }
     }, [])
 
@@ -276,7 +256,6 @@ export default function useVoiceRecorder(options = {}) {
         teardownAnalyser()
         setStatus('idle')
         setMessages([])
-        setTimer(0)
         setAudioUrl(null)
         setErrorMessage('')
     }, [])
@@ -284,7 +263,6 @@ export default function useVoiceRecorder(options = {}) {
     return {
         status,
         messages,
-        timer,
         errorMessage,
         audioUrl,
         analyserRef,

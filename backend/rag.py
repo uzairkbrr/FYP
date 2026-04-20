@@ -50,11 +50,10 @@ def ingest_text(text: str, source_label: str) -> dict:
     Chunk, embed, and upsert new text into the existing ChromaDB collection.
 
     Uses deterministic IDs so re-uploading the same content is idempotent.
-    Existing documents are never deleted — this is purely additive.
+    Existing documents are never deleted. This is purely additive.
 
     Returns: {"chunks_added": int, "source": source_label, "description": str}
     """
-    # Generate a one-liner description of the file (once, not per chunk)
     description = _generate_description(text)
 
     splitter = RecursiveCharacterTextSplitter(
@@ -97,25 +96,88 @@ def get_collection_stats() -> dict:
 
 
 # ---------------------------------------------------------------------------
-# RAG query (unchanged)
+# Greeting detection
+# ---------------------------------------------------------------------------
+
+GREETING_TOKENS = [
+    "salam", "salaam", "assalam", "assalamualaikum",
+    "walaikum", "hi", "hello", "hey", "good morning",
+    "good afternoon", "good evening", "helo", "aoa",
+    "aslam", "greetings", "namaste", "adaab",
+]
+
+_URDU_GREETING_ROMAN = (
+    "Assalam o Alaikum! Main Mahir hoon, FAST-NUCES Peshawar ka voice assistant. "
+    "Admissions, fees, scholarships, ya kisi bhi university se related sawal ke liye "
+    "main haazir hoon. Batayein, main aapki kya madad kar sakta hoon?"
+)
+
+_ENGLISH_GREETING = (
+    "Hello! I'm Mahir, the voice assistant for FAST-NUCES Peshawar. I'm here to help "
+    "you with admissions, fees, scholarships, programs, and anything else related to "
+    "the university. What would you like to know?"
+)
+
+
+def _is_pure_greeting(query: str) -> bool:
+    """True if the query is a short greeting without a real question attached."""
+    text = (query or "").strip().lower()
+    if not text:
+        return False
+    # A trailing question or a long utterance means it isn't a pure greeting.
+    if "?" in text:
+        return False
+    if len(text.split()) >= 12:
+        return False
+    return any(tok in text for tok in GREETING_TOKENS)
+
+
+def _translate_roman_to_arabic(roman: str) -> str:
+    """Use GPT-4o-mini to produce the Arabic-script version of a Roman Urdu phrase."""
+    try:
+        resp = _client.chat.completions.create(
+            model=GPT_MODEL,
+            messages=[
+                {
+                    "role": "system",
+                    "content": (
+                        "Convert the following Roman Urdu sentence to Arabic script Urdu. "
+                        "Preserve meaning exactly. Output only the Arabic script, no quotes, "
+                        "no explanations."
+                    ),
+                },
+                {"role": "user", "content": roman},
+            ],
+            temperature=0.0,
+        )
+        return resp.choices[0].message.content.strip()
+    except Exception:
+        return roman
+
+
+# ---------------------------------------------------------------------------
+# RAG query
 # ---------------------------------------------------------------------------
 
 def generate_response(query: str, language: str, conversation_history: list = []) -> dict:
     """
     Retrieve context from ChromaDB and generate a response via GPT-4o-mini.
 
-    Args:
-        query: User query (Roman Urdu if Urdu, English if English)
-        language: "en" or "ur"
-        conversation_history: list of {"role": "user"|"assistant", "content": str}
-            representing prior turns in this conversation. Sliced to last 6 items
-            to keep token usage bounded. Empty list = stateless behavior (no regression).
+    Pure greetings short-circuit the retrieval step and return a warm welcome.
+    Off-topic queries are handled at the prompt level.
 
     Returns:
         {"response_text": str, "tts_text": str}
-        - response_text: display text (Roman Urdu or English)
-        - tts_text: text for TTS (Arabic Urdu or English)
     """
+    # Short-circuit: pure greeting -> warm welcome, skip retrieval.
+    if _is_pure_greeting(query):
+        if language == "ur":
+            return {
+                "response_text": _URDU_GREETING_ROMAN,
+                "tts_text": _translate_roman_to_arabic(_URDU_GREETING_ROMAN),
+            }
+        return {"response_text": _ENGLISH_GREETING, "tts_text": _ENGLISH_GREETING}
+
     retrieved = _vectorstore.similarity_search(query, k=RAG_TOP_K)
 
     pieces = []
@@ -133,8 +195,21 @@ def generate_response(query: str, language: str, conversation_history: list = []
         return _generate_english_response(query, context, history)
 
 
+# Shared preamble for both language paths: off-topic guardrail + language policy.
+_PRIORITY_RULES = """PRIORITY RULES (these override every other instruction below):
+
+You are an assistant exclusively for FAST-NUCES Peshawar. You only answer questions related to FAST-NUCES Peshawar, including admissions, fees, scholarships, programs, academic policies, campus facilities, faculty, and hostel information. If the user asks about ANYTHING else (such as general knowledge, current events, prices, other universities, recipes, or any topic not directly related to FAST-NUCES Peshawar), do NOT attempt to answer. Instead, respond with exactly:
+English: "I don't have information about that. If you have any questions related to FAST Peshawar, feel free to ask!"
+Urdu (Roman): "Mujhe is bare mein maloomat nahi hai. Agar aapka koi sawal FAST Peshawar se related ho toh zaroor poochein!"
+Do not use the retrieved context for off-topic queries. Do not attempt a partial answer. Respond with the above message only.
+
+LANGUAGE POLICY. Your default response language is Urdu (Roman script for display, Arabic script for TTS). Always respond in Urdu unless the user's message is written or spoken entirely in English, in which case respond in English. If the user writes in a mix of Urdu and English (code-switching, which is common in Pakistani speech), always respond in Urdu. Never respond in English to a user who asked in Urdu, even if the retrieved context chunks are in English. Translate or paraphrase the context into natural Urdu when forming your response.
+"""
+
+
 def _generate_urdu_response(query: str, context: str, history: list = []) -> dict:
-    system_prompt = f"""You are Mahir, a warm and helpful voice assistant for FAST-NUCES Peshawar's front desk.
+    system_prompt = f"""{_PRIORITY_RULES}
+You are Mahir, a warm and helpful voice assistant for FAST-NUCES Peshawar's front desk.
 
 Answer the student's question using the provided context. Follow these rules strictly:
 
@@ -152,7 +227,7 @@ Answer the student's question using the provided context. Follow these rules str
    (a) it is directly present in the retrieved context,
    (b) it is specifically relevant to what the student asked, AND
    (c) the student would genuinely benefit from it (e.g. to complete an application, download a form, check a schedule).
-   Do NOT append a generic website reference at the end of every response just to be helpful — it feels robotic and repetitive.
+   Do NOT append a generic website reference at the end of every response just to be helpful. It feels robotic and repetitive.
 
 5. Keep your response to 1-2 sentences unless the question requires more. Be helpful but concise.
 
@@ -162,12 +237,15 @@ Answer the student's question using the provided context. Follow these rules str
 
 7. Write all numbers WITHOUT commas (11000 not 11,000).
 
-8. MARKDOWN LINK FORMATTING. When including a URL, always format it as a proper markdown link with a clean descriptive label — never write the URL bare and never use phrases like "is link", "here", or "click here" as the label. The label must describe the destination meaningfully.
+8. MARKDOWN LINK FORMATTING. When including a URL, always format it as a proper markdown link with a clean descriptive label. Never write the URL bare and never use phrases like "is link", "here", or "click here" as the label. The label must describe the destination meaningfully.
    - WRONG: [is link](https://pwr.nu.edu.pk/hostel)
    - WRONG: [here](https://pwr.nu.edu.pk/hostel)
    - WRONG: https://pwr.nu.edu.pk/hostel
    - RIGHT: [FAST-NUCES Peshawar Hostel Information](https://pwr.nu.edu.pk/hostel)
    - RIGHT: [Fee Structure Details](https://nu.edu.pk/Admissions/FeeStructure)
+
+Output format: Return ONLY a JSON object with exactly two keys:
+{{"roman_urdu": "<Roman-Urdu response for display>", "arabic_urdu": "<Arabic-script Urdu for TTS>"}}
 
 Context:
 {context}"""
@@ -195,7 +273,8 @@ Context:
 
 
 def _generate_english_response(query: str, context: str, history: list = []) -> dict:
-    system_prompt = f"""You are Mahir, a warm and helpful voice assistant for FAST-NUCES Peshawar's front desk.
+    system_prompt = f"""{_PRIORITY_RULES}
+You are Mahir, a warm and helpful voice assistant for FAST-NUCES Peshawar's front desk.
 
 Answer the student's question using the provided context. Follow these rules strictly:
 
@@ -213,7 +292,7 @@ Answer the student's question using the provided context. Follow these rules str
    (a) it is directly present in the retrieved context,
    (b) it is specifically relevant to what the student asked, AND
    (c) the student would genuinely benefit from it (e.g. to complete an application, download a form, check a schedule).
-   Do NOT append a generic website reference at the end of every response just to be helpful — it feels robotic and repetitive.
+   Do NOT append a generic website reference at the end of every response just to be helpful. It feels robotic and repetitive.
 
 5. Keep your response to 1-2 sentences unless the question requires more. Be helpful but concise.
 
@@ -223,7 +302,7 @@ Answer the student's question using the provided context. Follow these rules str
 
 7. Write all numbers WITHOUT commas (11000 not 11,000).
 
-8. MARKDOWN LINK FORMATTING. When including a URL, always format it as a proper markdown link with a clean descriptive label — never write the URL bare and never use phrases like "is link", "here", or "click here" as the label. The label must describe the destination meaningfully.
+8. MARKDOWN LINK FORMATTING. When including a URL, always format it as a proper markdown link with a clean descriptive label. Never write the URL bare and never use phrases like "is link", "here", or "click here" as the label. The label must describe the destination meaningfully.
    - WRONG: [is link](https://pwr.nu.edu.pk/hostel)
    - WRONG: [here](https://pwr.nu.edu.pk/hostel)
    - WRONG: https://pwr.nu.edu.pk/hostel

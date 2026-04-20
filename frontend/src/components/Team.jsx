@@ -32,7 +32,7 @@ export default function Team() {
         <section id="team-section" className="py-24 px-6 bg-background relative overflow-hidden">
             <div className="max-w-7xl mx-auto">
                 <div className="text-center mb-16">
-                    <h2 className="text-5xl font-black text-text-primary mb-4 tracking-tight font-serif italic">The <span className="text-primary not-italic">Architects</span></h2>
+                    <h2 className="text-6xl font-black text-text-primary mb-4 tracking-tight font-serif italic">The <span className="text-primary not-italic">Architects</span></h2>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -55,10 +55,10 @@ export default function Team() {
 
                             {/* Content */}
                             <div className="p-8 flex-1 flex flex-col border-t border-border/10">
-                                <h3 className="text-lg font-black text-text-primary mb-1 tracking-tight font-serif uppercase">
+                                <h3 className="text-xl font-black text-text-primary mb-1 tracking-tight font-serif uppercase">
                                     {member.name}
                                 </h3>
-                                <p className="text-text-muted font-bold text-[14px] uppercase tracking-widest mb-2">
+                                <p className="text-text-muted font-bold text-[15px] uppercase tracking-widest mb-2">
                                     {member.rollNo}
                                 </p>
                             </div>

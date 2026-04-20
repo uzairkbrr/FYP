@@ -1,50 +1,20 @@
 [
     {
-        "input_audio": "Test_cases_inputs\\input (1).ogg",
-        "input_roman": "PHD applicants ke liye minimum requirements kya hain?",
-        "response_roman": "PhD applicants ke liye minimum requirements hain: 18 saal taleem ke saath MS/MPhil/MBA degree HEC se manzoor shuda university se honi chahiye, minimum CGPA 3.00 ya first division, aur GRE/GAT ya FAST-NUCES admission test mein kam az kam 60% score hona chahiye.",
-        "response_audio": "test_results\\response_input (1).mp3"
-    },
-    {
-        "input_audio": "Test_cases_inputs\\input (2).ogg",
-        "input_roman": "2026 ke admission process mein application submission ki dates kya hain.",
-        "response_roman": "FAST-NUCES ke 2025 ke admission schedule mein applications May 19 se July 4 tak submit karni hoti hain.",
-        "response_audio": "test_results\\response_input (2).mp3"
-    },
-    {
-        "input_audio": "Test_cases_inputs\\input (3).ogg",
-        "input_roman": "Provisional admission kis ko di ja sakti hain?",
-        "response_roman": "Provisional admission un candidates ko di ja sakti hai jo results ka intezar kar rahe hain aur maqsoos marks hasil karne par munhasir hai.",
-        "response_audio": "test_results\\response_input (3).mp3"
-    },
-    {
-        "input_audio": "Test_cases_inputs\\input (4).ogg",
-        "input_roman": "Admission ke baad candidates ko kaunsi additional support provide ki ja sakti hai?",
-        "response_roman": "Admission ke baad candidates ko mukhtalif financial assistance, scholarships, loans, aur university assistantships ki sahulat faraham ki ja sakti hai.",
-        "response_audio": "test_results\\response_input (4).mp3"
-    },
-    {
         "input_audio": "Test_cases_inputs\\input (5).ogg",
         "input_roman": "Applicants ko kaun se documents submit karne zaroori hain?",
         "response_roman": "Applicants ko admission confirmation, transcripts, comprehensive exam results, plagiarism report, journal publication aur correspondence, aur foreign reviewer consents submit karne zaroori hain.",
-        "response_audio": "test_results\\response_input (5).mp3"
+        "response_audio": "test_results\\response (5).mp3"
     },
     {
         "input_audio": "Test_cases_inputs\\input (6).ogg",
         "input_roman": "Fast Newsz mein student counseling ya mental health support service available hai.",
         "response_roman": "Mujhe is bare mein kafi maloomat nahi hai.",
-        "response_audio": "test_results\\response_input (6).mp3"
+        "response_audio": "test_results\\response (6).mp3"
     },
     {
-        "input_audio": "Test_cases_inputs\\input (7).ogg",
-        "input_roman": "University ki library digital resources aur e-books ka kitna collection hai?",
-        "response_roman": "Mujhe is bare mein kafi maloomat nahi hai.",
-        "response_audio": "test_results\\response_input (7).mp3"
-    },
-    {
-        "input_audio": "Test_cases_inputs\\input (8).ogg",
-        "input_roman": "Kya university apne students ke liye health insurance ya medical coverage plans offer karti hain?",
-        "response_roman": "Mujhe is bare mein kafi maloomat nahi hai.",
-        "response_audio": "test_results\\response_input (8).mp3"
+        "input_audio": "Test_cases_inputs\\input (3).ogg",
+        "input_roman": "Provisional admission kis ko di ja sakti hain?",
+        "response_roman": "Provisional admission un candidates ko di ja sakti hai jo results ka intezar kar rahe hain aur maqsoos marks hasil karne par munhasir hai.",
+        "response_audio": "test_results\\response (3).mp3"
     }
 ]

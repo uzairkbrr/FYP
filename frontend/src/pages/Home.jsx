@@ -3,17 +3,14 @@ import Navbar from "../components/Navbar";
 import Hero from "../components/Hero";
 import VoiceCard from "../components/VoiceCard";
 import ProjectInfo from "../components/ProjectInfo";
-import HowItWorks from "../components/HowItWorks";
 import Team from "../components/Team";
 import Supervisor from "../components/Supervisor";
 import TestCases from "../components/TestCases";
 import ChatWidget from "../components/ChatWidget";
 import Footer from "../components/Footer";
 import Reveal from "../components/Reveal";
-import { useTheme } from "../context/ThemeContext";
 
 export default function Home() {
-    const { toggleTheme } = useTheme();
     const voiceCardRef = useRef(null);
     const [progress, setProgress] = useState(0);
 
@@ -33,7 +30,7 @@ export default function Home() {
         return () => window.removeEventListener('scroll', onScroll);
     }, []);
 
-    // Global keyboard shortcuts (/, Esc, T)
+    // Global keyboard shortcuts (/, Esc)
     useEffect(() => {
         const onKey = (e) => {
             const t = e.target;
@@ -45,13 +42,11 @@ export default function Home() {
                 window.dispatchEvent(new CustomEvent('mahir:open-widget'));
             } else if (e.key === 'Escape') {
                 window.dispatchEvent(new CustomEvent('mahir:close-widget'));
-            } else if ((e.key === 't' || e.key === 'T') && !inInput && !e.metaKey && !e.ctrlKey) {
-                toggleTheme();
             }
         };
         window.addEventListener('keydown', onKey);
         return () => window.removeEventListener('keydown', onKey);
-    }, [toggleTheme]);
+    }, []);
 
     return (
         <div className="min-h-screen font-sans selection:bg-primary/20 selection:text-primary">
@@ -78,10 +73,6 @@ export default function Home() {
                     <div id="mission-section">
                         <ProjectInfo />
                     </div>
-                </Reveal>
-
-                <Reveal delay={80}>
-                    <HowItWorks />
                 </Reveal>
 
                 <Reveal>

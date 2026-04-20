@@ -8,26 +8,26 @@ export default function Supervisor() {
 
             <div className="max-w-7xl mx-auto">
                 <div className="text-center mb-16">
-                    <h2 className="text-5xl font-black text-text-primary mb-4 tracking-tight font-serif italic">Supervisor</h2>
+                    <h2 className="text-6xl font-black text-text-primary mb-4 tracking-tight font-serif italic">Supervisor</h2>
                 </div>
 
                 <div className="bg-surface rounded-xl border border-border/60 overflow-hidden max-w-5xl mx-auto min-h-[300px] flex flex-col md:flex-row transition-all duration-500 hover:shadow-2xl hover:shadow-primary/5">
                     {/* Left – Info */}
                     <div className="flex-1 p-12 md:p-16 flex flex-col justify-center gap-4 relative overflow-hidden">
                         <div>
-                            <h3 className="text-3xl font-black text-text-primary mb-1 tracking-tight font-serif uppercase">
+                            <h3 className="text-4xl font-black text-text-primary mb-1 tracking-tight font-serif uppercase">
                                 Muhammad Umer Haroon
                             </h3>
-                            <p className="text-text-muted font-bold text-sm uppercase tracking-widest">
+                            <p className="text-text-muted font-bold text-base uppercase tracking-widest">
                                 Lecturer
                             </p>
                         </div>
 
                         <div>
-                            <p className="text-text-muted font-bold text-xs uppercase tracking-widest mb-1">
+                            <p className="text-text-muted font-bold text-[14px] uppercase tracking-widest mb-1">
                                 Department of Computer Science
                             </p>
-                            <p className="text-text-muted font-bold text-[10px] uppercase tracking-widest opacity-80">
+                            <p className="text-text-muted font-bold text-[14px] uppercase tracking-widest opacity-80">
                                 National University of Computer and Emerging Sciences, Peshawar
                             </p>
                         </div>
