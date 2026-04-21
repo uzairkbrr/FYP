@@ -98,8 +98,8 @@ export default function VoiceCard() {
     return (
         <section id="voice-section" className="py-16 px-6">
             <div className="max-w-[1124px] mx-auto">
-                <div className="rounded-xl border border-border/60 bg-surface/50 backdrop-blur-sm overflow-hidden shadow-sm">
-                    <div className="px-10 py-6 border-b border-border/20 flex items-center justify-between">
+                <div className="rounded-xl border border-primary/30 bg-primary/10 backdrop-blur-sm overflow-hidden shadow-sm">
+                    <div className="px-10 py-6 border-b border-primary/20 flex items-center justify-between">
                         <h3 className="text-[10px] font-bold text-text-muted uppercase tracking-[0.4em]">Transcript</h3>
 
                         {(showListen || showReset) && (
@@ -175,6 +175,9 @@ export default function VoiceCard() {
                             </div>
 
                             <div className="mt-4 flex flex-col items-center gap-2">
+                                {isProcessing && (
+                                    <span className="text-[14px] text-text-muted font-medium animate-pulse">Processing your query</span>
+                                )}
                                 <button
                                     onClick={handleMicClick}
                                     disabled={isProcessing}
@@ -182,14 +185,11 @@ export default function VoiceCard() {
                                 >
                                     {isListening ? `Stop (${timer}s)` : hasResponse ? 'Tap to interrupt' : 'Click to Start'}
                                 </button>
-                                {isProcessing && (
-                                    <span className="text-[10px] text-text-muted font-medium animate-pulse">Processing your query</span>
-                                )}
                             </div>
                         </div>
 
                         <div className="flex-1 flex flex-col pt-8">
-                            <div className="flex-1 min-h-[400px] flex flex-col bg-background/30 rounded-xl border border-border/40 p-6">
+                            <div className="flex-1 min-h-[400px] flex flex-col bg-background rounded-xl border border-primary/20 p-6">
                                 <div className="flex-1 overflow-y-auto space-y-4 scrollbar-thin pr-4">
                                     {messages.length === 0 ? (
                                         <div className="flex flex-col items-center justify-center h-full opacity-50 select-none text-center">

@@ -36,19 +36,19 @@ const TestCases = () => {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                     {testCases.map((tc, idx) => (
-                        <div key={idx} className="bg-white rounded-2xl border border-gray-200 p-6 flex flex-col hover:shadow-[0_8px_30px_rgba(0,0,0,0.35)] transition-all duration-300">
+                        <div key={idx} className="bg-white rounded-2xl border border-gray-200 p-5 flex flex-col hover:shadow-[0_8px_30px_rgba(0,0,0,0.35)] transition-all duration-300">
 
                             <div>
-                                <h3 className="font-semibold text-lg text-gray-900 mb-2 border-b border-gray-200 pb-2">Input Voice Note #{idx + 1}</h3>
-                                <audio controls src={`/${tc.input_audio.replace(/\\\\/g, '/')}`} className="w-full mb-3 h-10" />
-                                <p className="text-sm text-gray-600 bg-gray-50 p-3 rounded-lg border border-gray-200 mb-4">
+                                <h3 className="font-semibold text-lg text-gray-900 mb-1.5 border-b border-gray-200 pb-1.5">Input Voice Note</h3>
+                                <audio controls src={`/${tc.input_audio.replace(/\\\\/g, '/')}`} className="w-full mb-2 h-10" />
+                                <p className="text-sm text-gray-600 bg-gray-50 p-2.5 rounded-lg border border-gray-200 mb-3 max-h-28 overflow-y-auto scrollbar-thin">
                                     {tc.input_roman}
                                 </p>
                             </div>
 
                             <div>
-                                <h3 className="font-semibold text-lg mb-2 border-b border-gray-200 pb-2 text-primary">Generated Response</h3>
-                                <p className="text-sm text-gray-600 bg-primary/5 p-3 rounded-lg border border-primary/20 mb-3">
+                                <h3 className="font-semibold text-lg mb-1.5 border-b border-gray-200 pb-1.5 text-primary">Generated Response</h3>
+                                <p className="text-sm text-gray-600 bg-primary/5 p-2.5 rounded-lg border border-primary/20 mb-2 max-h-28 overflow-y-auto scrollbar-thin">
                                     {tc.response_roman || <span className="italic">No text response generated</span>}
                                 </p>
                                 <audio controls src={`/${tc.response_audio.replace(/\\\\/g, '/')}`} className="w-full h-10" />

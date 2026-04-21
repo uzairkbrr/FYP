@@ -62,7 +62,7 @@ export default function LiveWaveform({
                 getComputedStyle(document.documentElement)
                     .getPropertyValue('--primary')
                     .trim() ||
-                '#9b2c2c'
+                '#0099CC'
 
             const analyser = analyserRef?.current
 

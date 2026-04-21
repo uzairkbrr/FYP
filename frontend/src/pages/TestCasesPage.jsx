@@ -1,31 +1,12 @@
 import React, { useEffect, useState } from 'react'
 import {
     ResponsiveContainer,
-    BarChart, Bar,
     PieChart, Pie, Cell,
-    XAxis, YAxis, CartesianGrid, Tooltip, Legend,
-    LabelList,
+    Tooltip,
 } from 'recharts'
 import Navbar from '../components/Navbar'
 
-/**
- * Test & Evaluation dashboard — rendered at /test-cases
- *
- * Data source: /test_results/evaluation.json  (static, committed to repo).
- * Re-run the test suites → regenerate that JSON → refresh this page.
- *
- * Expected schema:
- *   {
- *     summary:           { total_tests, passed, failed, pass_rate_pct, avg_p95_ms, sus_score },
- *     unit_integration:  [{ id, category, scenario, expected, actual, passed, duration_ms, notes? }],
- *     retrieval:         { dataset_size, k_values, precision_at_k, recall_at_k, hit_rate_at_k, mrr },
- *     scope_restriction: { dataset_size, correctly_refused, leaked, examples: [{prompt, refused, notes?}] },
- *     latency:           [{ endpoint, p50_ms, p95_ms, p99_ms, samples }],
- *     sus:               { score, n_respondents, interpretation, per_question_avg, quotes }
- *   }
- */
-
-const COLOR_PRIMARY = '#9b2c2c'   // brand red
+const COLOR_PRIMARY = '#0099CC'   // brand teal
 const COLOR_SUCCESS = '#22c55e'   // green
 const COLOR_DANGER = '#ef4444'    // red
 const COLOR_ACCENT = '#60a5fa'    // blue
@@ -53,17 +34,11 @@ export default function TestCasesPage() {
             <Navbar />
             <main className="max-w-[1380px] mx-auto px-6 py-16">
                 <header className="mb-12">
-                    <p className="text-[10px] font-bold text-text-muted uppercase tracking-[0.4em] mb-3">
-                        Formal Testing
-                    </p>
                     <h1 className="text-5xl font-black text-text-primary tracking-tight font-serif italic">
                         Testing &amp; <span className="text-primary not-italic">Evaluation</span>
                     </h1>
                     <p className="mt-4 text-text-secondary max-w-3xl leading-relaxed">
-                        Results from unit, integration, retrieval, scope-restriction, latency and
-                        user-acceptance testing for MahirConnect. Data is loaded from a static JSON
-                        artifact produced by the test suites; re-running the suites updates every
-                        chart on this page.
+                        Test results for MahirConnect: covering accuracy, response quality, speed, and user satisfaction.
                     </p>
                 </header>
 
@@ -77,12 +52,9 @@ export default function TestCasesPage() {
 
                 {data && (
                     <div className="space-y-10">
-                        <SummaryStrip summary={data.summary} />
+                        <ResponseTimeBanner responseTime={data.response_time} />
                         <UnitIntegrationSection rows={data.unit_integration} />
-                        <RetrievalSection retrieval={data.retrieval} />
                         <ScopeSection scope={data.scope_restriction} />
-                        <LatencySection latency={data.latency} />
-                        <SusSection sus={data.sus} />
                     </div>
                 )}
             </main>
@@ -90,10 +62,6 @@ export default function TestCasesPage() {
     )
 }
 
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Shared UI
-// ─────────────────────────────────────────────────────────────────────────────
 
 function Card({ title, subtitle, children, className = '' }) {
     return (
@@ -115,18 +83,6 @@ function Card({ title, subtitle, children, className = '' }) {
     )
 }
 
-function Metric({ label, value, suffix = '', accent = false }) {
-    return (
-        <div className="rounded-xl border border-border/60 bg-surface/50 backdrop-blur-sm px-6 py-5">
-            <p className="text-[10px] font-bold text-text-muted uppercase tracking-[0.3em] mb-2">{label}</p>
-            <p className={`text-3xl font-black tracking-tight ${accent ? 'text-primary' : 'text-text-primary'}`}>
-                {value}
-                {suffix && <span className="text-lg text-text-muted font-bold ml-1">{suffix}</span>}
-            </p>
-        </div>
-    )
-}
-
 function LoadingBlock() {
     return (
         <div className="rounded-xl border border-border/60 bg-surface/50 backdrop-blur-sm p-10 flex items-center justify-center">
@@ -139,7 +95,32 @@ function LoadingBlock() {
     )
 }
 
-// Dark-themed tooltip for all Recharts components
+function ResponseTimeBanner({ responseTime }) {
+    if (!responseTime) return null
+    const { avg_seconds, samples, description } = responseTime
+    return (
+        <section className="rounded-xl border border-primary/30 bg-primary/10 backdrop-blur-sm shadow-sm overflow-hidden">
+            <div className="flex flex-col md:flex-row items-stretch">
+                <div className="shrink-0 flex items-center justify-center px-10 py-8 bg-primary/15 border-b md:border-b-0 md:border-r border-primary/20">
+                    <div className="text-center">
+                        <p className="text-[10px] font-bold text-text-muted uppercase tracking-[0.3em] mb-2">Avg. Response Time</p>
+                        <p className="text-6xl font-black text-primary tracking-tight leading-none">~{avg_seconds}<span className="text-3xl font-bold ml-1">s</span></p>
+                        {samples ? (
+                            <p className="mt-2 text-[11px] text-text-muted uppercase tracking-widest">n = {samples} queries</p>
+                        ) : null}
+                    </div>
+                </div>
+                <div className="flex-1 px-8 py-6 flex flex-col justify-center">
+                    <h3 className="text-[10px] font-bold text-text-muted uppercase tracking-[0.4em] mb-2">End-to-End Latency</h3>
+                    <p className="text-text-secondary text-sm leading-relaxed">
+                        {description}
+                    </p>
+                </div>
+            </div>
+        </section>
+    )
+}
+
 function ChartTooltip({ active, payload, label }) {
     if (!active || !payload || !payload.length) return null
     return (
@@ -155,28 +136,6 @@ function ChartTooltip({ active, payload, label }) {
     )
 }
 
-
-// ─────────────────────────────────────────────────────────────────────────────
-// 1. Summary strip
-// ─────────────────────────────────────────────────────────────────────────────
-
-function SummaryStrip({ summary }) {
-    if (!summary) return null
-    return (
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-            <Metric label="Total Tests" value={summary.total_tests} />
-            <Metric label="Passed" value={summary.passed} accent />
-            <Metric label="Pass Rate" value={summary.pass_rate_pct.toFixed(1)} suffix="%" accent />
-            <Metric label="Avg p95 Latency" value={summary.avg_p95_ms.toLocaleString()} suffix="ms" />
-            <Metric label="SUS Score" value={summary.sus_score.toFixed(1)} accent />
-        </div>
-    )
-}
-
-
-// ─────────────────────────────────────────────────────────────────────────────
-// 2. Unit + Integration
-// ─────────────────────────────────────────────────────────────────────────────
 
 function UnitIntegrationSection({ rows }) {
     const [filter, setFilter] = useState('all') // all | Unit | Integration | failed
@@ -322,53 +281,6 @@ function LegendSwatch({ color, label }) {
 }
 
 
-// ─────────────────────────────────────────────────────────────────────────────
-// 3. RAG retrieval metrics
-// ─────────────────────────────────────────────────────────────────────────────
-
-function RetrievalSection({ retrieval }) {
-    if (!retrieval) return null
-    const chartData = retrieval.k_values.map((k, i) => ({
-        k: `K=${k}`,
-        Precision: +retrieval.precision_at_k[i].toFixed(3),
-        Recall: +retrieval.recall_at_k[i].toFixed(3),
-        'Hit Rate': +retrieval.hit_rate_at_k[i].toFixed(3),
-    }))
-
-    return (
-        <Card
-            title="RAG Retrieval Evaluation"
-            subtitle={`Precision, Recall and Hit Rate at K, plus Mean Reciprocal Rank, computed on a labelled question-to-source dataset (n=${retrieval.dataset_size}).`}
-        >
-            <div className="grid grid-cols-1 lg:grid-cols-[1fr_260px] gap-8 items-center">
-                <div className="h-72">
-                    <ResponsiveContainer>
-                        <BarChart data={chartData} margin={{ top: 8, right: 8, left: -16, bottom: 0 }}>
-                            <CartesianGrid strokeDasharray="3 3" stroke={GRID_STROKE} />
-                            <XAxis dataKey="k" stroke={AXIS_STROKE} tick={{ fontSize: 12 }} />
-                            <YAxis stroke={AXIS_STROKE} domain={[0, 1]} tick={{ fontSize: 12 }} />
-                            <Tooltip content={<ChartTooltip />} cursor={{ fill: 'rgba(155,44,44,0.08)' }} />
-                            <Legend wrapperStyle={{ fontSize: 12, color: '#c4c4c8' }} />
-                            <Bar dataKey="Precision" fill={COLOR_PRIMARY} radius={[6, 6, 0, 0]} />
-                            <Bar dataKey="Recall" fill={COLOR_ACCENT} radius={[6, 6, 0, 0]} />
-                            <Bar dataKey="Hit Rate" fill={COLOR_PURPLE} radius={[6, 6, 0, 0]} />
-                        </BarChart>
-                    </ResponsiveContainer>
-                </div>
-                <div className="space-y-3">
-                    <Metric label="MRR" value={retrieval.mrr.toFixed(3)} accent />
-                    <Metric label="Dataset Size" value={retrieval.dataset_size} suffix="Q" />
-                </div>
-            </div>
-        </Card>
-    )
-}
-
-
-// ─────────────────────────────────────────────────────────────────────────────
-// 4. Scope restriction (off-topic refusal)
-// ─────────────────────────────────────────────────────────────────────────────
-
 function ScopeSection({ scope }) {
     if (!scope) return null
     const refusedPct = (scope.correctly_refused / scope.dataset_size) * 100
@@ -436,111 +348,3 @@ function ScopeSection({ scope }) {
 }
 
 
-// ─────────────────────────────────────────────────────────────────────────────
-// 5. Latency
-// ─────────────────────────────────────────────────────────────────────────────
-
-function LatencySection({ latency }) {
-    if (!latency) return null
-    const chartData = latency.map((r) => ({
-        endpoint: r.endpoint,
-        p50: r.p50_ms,
-        p95: r.p95_ms,
-        p99: r.p99_ms,
-    }))
-
-    return (
-        <Card
-            title="Endpoint Latency"
-            subtitle="p50 / p95 / p99 response time per endpoint, measured under local development conditions."
-        >
-            <div className="h-80">
-                <ResponsiveContainer>
-                    <BarChart data={chartData} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
-                        <CartesianGrid strokeDasharray="3 3" stroke={GRID_STROKE} />
-                        <XAxis dataKey="endpoint" stroke={AXIS_STROKE} tick={{ fontSize: 11 }} />
-                        <YAxis stroke={AXIS_STROKE} tick={{ fontSize: 12 }} unit=" ms" />
-                        <Tooltip content={<ChartTooltip />} cursor={{ fill: 'rgba(155,44,44,0.08)' }} />
-                        <Legend wrapperStyle={{ fontSize: 12, color: '#c4c4c8' }} />
-                        <Bar dataKey="p50" name="p50" fill={COLOR_ACCENT} radius={[6, 6, 0, 0]} />
-                        <Bar dataKey="p95" name="p95" fill={COLOR_PRIMARY} radius={[6, 6, 0, 0]} />
-                        <Bar dataKey="p99" name="p99" fill={COLOR_AMBER} radius={[6, 6, 0, 0]} />
-                    </BarChart>
-                </ResponsiveContainer>
-            </div>
-        </Card>
-    )
-}
-
-
-// ─────────────────────────────────────────────────────────────────────────────
-// 6. SUS (System Usability Scale)
-// ─────────────────────────────────────────────────────────────────────────────
-
-function SusSection({ sus }) {
-    if (!sus) return null
-    const chartData = sus.per_question_avg.map((p, i) => ({
-        q: `Q${i + 1}`,
-        avg: p.avg,
-        full: p.q,
-    }))
-
-    return (
-        <Card
-            title="User Acceptance — SUS"
-            subtitle={`Standardised usability questionnaire administered to ${sus.n_respondents} testers. ${sus.interpretation}`}
-        >
-            <div className="grid grid-cols-1 lg:grid-cols-[300px_1fr] gap-8 items-start">
-                <div>
-                    <div className="rounded-xl border border-primary/30 bg-primary/10 p-8 text-center">
-                        <p className="text-[10px] font-bold text-text-muted uppercase tracking-[0.3em] mb-2">SUS Score</p>
-                        <p className="text-6xl font-black text-primary tracking-tight">{sus.score.toFixed(1)}</p>
-                        <p className="mt-2 text-xs text-text-secondary">out of 100 · n = {sus.n_respondents}</p>
-                    </div>
-                    <div className="mt-5 space-y-3">
-                        {sus.quotes.map((q, i) => (
-                            <blockquote
-                                key={i}
-                                className="text-xs text-text-secondary border-l-2 border-primary/40 pl-3 italic"
-                            >
-                                &ldquo;{q}&rdquo;
-                            </blockquote>
-                        ))}
-                    </div>
-                </div>
-
-                <div>
-                    <div className="h-80">
-                        <ResponsiveContainer>
-                            <BarChart data={chartData} margin={{ top: 8, right: 8, left: -16, bottom: 0 }}>
-                                <CartesianGrid strokeDasharray="3 3" stroke={GRID_STROKE} />
-                                <XAxis dataKey="q" stroke={AXIS_STROKE} tick={{ fontSize: 11 }} />
-                                <YAxis stroke={AXIS_STROKE} domain={[0, 5]} tick={{ fontSize: 12 }} />
-                                <Tooltip
-                                    content={({ active, payload }) => {
-                                        if (!active || !payload || !payload.length) return null
-                                        const row = payload[0].payload
-                                        return (
-                                            <div className="rounded-lg border border-border bg-surface/95 backdrop-blur px-3 py-2 text-xs shadow-xl max-w-xs">
-                                                <p className="font-bold text-text-primary mb-1">{row.q}</p>
-                                                <p className="text-text-secondary mb-1">{row.full}</p>
-                                                <p className="text-primary font-bold">Avg: {row.avg}</p>
-                                            </div>
-                                        )
-                                    }}
-                                    cursor={{ fill: 'rgba(155,44,44,0.08)' }}
-                                />
-                                <Bar dataKey="avg" name="Average rating" fill={COLOR_PRIMARY} radius={[6, 6, 0, 0]}>
-                                    <LabelList dataKey="avg" position="top" fill="#c4c4c8" fontSize={11} />
-                                </Bar>
-                            </BarChart>
-                        </ResponsiveContainer>
-                    </div>
-                    <p className="mt-2 text-[11px] text-text-muted italic">
-                        Hover a bar to see the full question. Odd questions are positive phrasing (higher = better); even questions are negative phrasing (lower = better).
-                    </p>
-                </div>
-            </div>
-        </Card>
-    )
-}
