@@ -7,14 +7,21 @@ PROJECT_DIR = BASE_DIR.parent
 
 load_dotenv(dotenv_path=str(PROJECT_DIR / ".env"))
 
+# Single-point data directory — holds ChromaDB persistence and JSON stores
+DB_DIR = PROJECT_DIR / "db"
+DB_DIR.mkdir(parents=True, exist_ok=True)
+
 # API Keys
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 DEEPGRAM_API_KEY = os.getenv("DEEPGRAM_API_KEY")
 ELEVENLABS_API_KEY = os.getenv("ELEVENLABS_API_KEY")
 
 # ChromaDB
-CHROMA_PERSIST_DIR = str(PROJECT_DIR / "chroma_db")
+CHROMA_PERSIST_DIR = str(DB_DIR / "chroma_db")
 CHROMA_COLLECTION = "sample"
+
+# Contact-form inbox — JSON file, created on first write
+MESSAGES_FILE = str(DB_DIR / "admin_messages.json")
 
 # LLM
 GPT_MODEL = "gpt-4o-mini"

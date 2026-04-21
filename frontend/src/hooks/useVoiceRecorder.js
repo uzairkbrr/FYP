@@ -125,8 +125,8 @@ export default function useVoiceRecorder(options = {}) {
             setStatus('error')
             setErrorMessage(
                 err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError'
-                    ? 'Microphone permission denied. Please allow microphone access in your browser settings.'
-                    : 'Could not access microphone. Please check your device.'
+                    ? 'Please allow microphone access to continue.'
+                    : 'Please try again.'
             )
         }
     }, [])
@@ -211,7 +211,7 @@ export default function useVoiceRecorder(options = {}) {
 
         } catch (err) {
             setStatus('error')
-            setErrorMessage(err.message || 'Failed to process your query. Please try again.')
+            setErrorMessage('Please try again.')
         }
     }
 
@@ -262,7 +262,7 @@ export default function useVoiceRecorder(options = {}) {
 
         } catch (err) {
             setStatus('error')
-            setErrorMessage(err.message || 'Failed to process your query. Please try again.')
+            setErrorMessage('Please try again.')
         }
     }, [])
 

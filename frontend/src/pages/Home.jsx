@@ -3,15 +3,12 @@ import Navbar from "../components/Navbar";
 import Hero from "../components/Hero";
 import VoiceCard from "../components/VoiceCard";
 import ProjectInfo from "../components/ProjectInfo";
-import HowItWorks from "../components/HowItWorks";
 import Team from "../components/Team";
 import Supervisor from "../components/Supervisor";
 import TestCases from "../components/TestCases";
 import ChatWidget from "../components/ChatWidget";
-import { useTheme } from "../context/ThemeContext";
 
 export default function Home() {
-    const { theme } = useTheme();
     const voiceCardRef = useRef(null);
 
     const scrollToVoice = () => {
@@ -26,7 +23,7 @@ export default function Home() {
                 <Hero onStartQuery={scrollToVoice} />
 
                 <div id="voice-section" ref={voiceCardRef} className="py-24 px-6 relative">
-                    <div className="max-w-5xl mx-auto">
+                    <div className="max-w-[1124px] mx-auto">
                         <VoiceCard />
                     </div>
                 </div>
@@ -36,7 +33,6 @@ export default function Home() {
                 <div id="mission-section">
                     <ProjectInfo />
                 </div>
-                <HowItWorks />
                 <Team />
                 <Supervisor />
             </main>
