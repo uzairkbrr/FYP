@@ -222,7 +222,6 @@ function MessagesCard({ authedFetch }) {
     const [messages, setMessages] = useState([])
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState('')
-    const [updatingId, setUpdatingId] = useState(null)
     const [updatingActionId, setUpdatingActionId] = useState(null)
     const [selectedMessage, setSelectedMessage] = useState(null)
 
@@ -250,26 +249,6 @@ function MessagesCard({ authedFetch }) {
     }, [authedFetch])
 
     useEffect(() => { loadMessages() }, [loadMessages])
-
-    const toggleRead = async (msg) => {
-        setUpdatingId(msg.id)
-        const nextRead = !msg.read
-        try {
-            const res = await authedFetch(`${API_URL}/admin/messages/${msg.id}/read`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ read: nextRead }),
-            })
-            if (!res.ok) throw new Error('Failed to update')
-            setMessages((prev) =>
-                prev.map((m) => (m.id === msg.id ? { ...m, read: nextRead } : m))
-            )
-        } catch {
-            // silently ignore; UI stays consistent with server state on next load
-        } finally {
-            setUpdatingId(null)
-        }
-    }
 
     const setAction = async (msg, nextAction) => {
         setUpdatingActionId(msg.id)
@@ -355,17 +334,15 @@ function MessagesCard({ authedFetch }) {
                                     <td className="py-3 text-text-secondary text-xs break-all pr-3">{m.contact}</td>
                                     <td className="py-3 text-text-secondary text-xs whitespace-pre-wrap pr-3 line-clamp-2">{m.message}</td>
                                     <td className="py-3">
-                                        <button
-                                            onClick={(e) => { e.stopPropagation(); toggleRead(m) }}
-                                            disabled={updatingId === m.id}
-                                            title="Click to toggle"
-                                            className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest transition-colors cursor-pointer disabled:opacity-60 ${m.read
+                                        <span
+                                            title={m.action ? 'Admin recorded a response' : 'No response recorded yet'}
+                                            className={`inline-block px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest select-none ${m.action
                                                 ? 'bg-text-muted/15 text-text-muted border border-text-muted/30'
                                                 : 'bg-green-500/15 text-green-500 border border-green-500/40'
                                                 }`}
                                         >
-                                            {m.read ? 'Read' : 'Unread'}
-                                        </button>
+                                            {m.action ? 'Responded' : 'Unread'}
+                                        </span>
                                     </td>
                                     <td className="py-3 pr-1">
                                         {m.action ? (
