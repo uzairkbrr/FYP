@@ -22,7 +22,7 @@
     "email": "arsalan@gmail.com",
     "contact": "03123456789",
     "message": "Hey, Testing the custom message feature.",
-    "read": true,
+    "read": false,
     "action": "",
     "created_at": "2026-04-21T09:00:26.527372+00:00"
   }

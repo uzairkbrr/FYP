@@ -62,6 +62,12 @@ def preprocess_for_tts(text: str) -> str:
     # Step 2 — general fallback: any remaining ALL-CAPS word (4+ chars) → Title Case
     text = re.sub(r"\b[A-Z]{4,}\b", lambda m: m.group().title(), text)
 
+    # Step 3 — strip thousands-separator commas from numbers (e.g. 167,500 → 167500).
+    # ElevenLabs reads such commas as pauses and splits the number. Commas that
+    # sit between two digits are always thousands separators, never list commas
+    # (which are followed by a space in normal prose).
+    text = re.sub(r"(?<=\d),(?=\d)", "", text)
+
     return text
 
 
