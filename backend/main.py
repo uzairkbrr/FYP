@@ -196,6 +196,11 @@ class ContactMessageRequest(BaseModel):
     message: str = Field(..., min_length=1, max_length=2000)
 
 
+# Allowed values for how an admin responded to a message.
+# Empty string means "no action recorded yet".
+ALLOWED_ACTIONS = {"", "call", "email", "whatsapp"}
+
+
 @app.post("/contact-message")
 def submit_contact_message(body: ContactMessageRequest):
     """Accept a contact-form submission from the chat widget."""
@@ -212,6 +217,7 @@ def submit_contact_message(body: ContactMessageRequest):
         "contact": contact,
         "message": message,
         "read": False,
+        "action": "",
         "created_at": datetime.now(timezone.utc).isoformat(),
     }
 
@@ -334,6 +340,9 @@ def admin_list_messages(_user: str = Depends(_verify_admin)):
     """Return all contact-form submissions, newest first."""
     with _messages_lock:
         messages = _load_messages()
+    # Backfill the "action" field for messages stored before it existed.
+    for m in messages:
+        m.setdefault("action", "")
     # Newest first
     messages.sort(key=lambda m: m.get("created_at", ""), reverse=True)
     return {"messages": messages}
@@ -363,3 +372,36 @@ def admin_mark_message(
         _save_messages(messages)
 
     return {"success": True, "id": message_id, "read": body.read}
+
+
+class ActionUpdateRequest(BaseModel):
+    action: str = ""
+
+
+@app.post("/admin/messages/{message_id}/action")
+def admin_set_message_action(
+    message_id: str,
+    body: ActionUpdateRequest,
+    _user: str = Depends(_verify_admin),
+):
+    """Record how the admin responded to a message (call / email / whatsapp / none)."""
+    action = (body.action or "").strip().lower()
+    if action not in ALLOWED_ACTIONS:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Invalid action. Allowed: {sorted(ALLOWED_ACTIONS)}",
+        )
+
+    with _messages_lock:
+        messages = _load_messages()
+        found = False
+        for m in messages:
+            if m.get("id") == message_id:
+                m["action"] = action
+                found = True
+                break
+        if not found:
+            raise HTTPException(status_code=404, detail="Message not found.")
+        _save_messages(messages)
+
+    return {"success": True, "id": message_id, "action": action}

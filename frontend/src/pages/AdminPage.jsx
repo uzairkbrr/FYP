@@ -211,11 +211,19 @@ function LoginGate({ onLogin, error, setError }) {
 }
 
 
+const ACTION_OPTIONS = [
+    { value: '', label: '—' },
+    { value: 'call', label: 'Responded through call' },
+    { value: 'email', label: 'Responded through email' },
+    { value: 'whatsapp', label: 'Responded via WhatsApp' },
+]
+
 function MessagesCard({ authedFetch }) {
     const [messages, setMessages] = useState([])
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState('')
     const [updatingId, setUpdatingId] = useState(null)
+    const [updatingActionId, setUpdatingActionId] = useState(null)
     const [selectedMessage, setSelectedMessage] = useState(null)
 
     // Close the modal when Escape is pressed.
@@ -263,6 +271,25 @@ function MessagesCard({ authedFetch }) {
         }
     }
 
+    const setAction = async (msg, nextAction) => {
+        setUpdatingActionId(msg.id)
+        try {
+            const res = await authedFetch(`${API_URL}/admin/messages/${msg.id}/action`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: nextAction }),
+            })
+            if (!res.ok) throw new Error('Failed to update')
+            setMessages((prev) =>
+                prev.map((m) => (m.id === msg.id ? { ...m, action: nextAction } : m))
+            )
+        } catch {
+            // silently ignore; UI stays consistent with server state on next load
+        } finally {
+            setUpdatingActionId(null)
+        }
+    }
+
     return (
         <>
         <div className="rounded-xl border border-border/60 bg-surface/50 backdrop-blur-sm overflow-hidden shadow-sm mb-8">
@@ -300,17 +327,20 @@ function MessagesCard({ authedFetch }) {
                     <table className="w-full text-sm">
                         <thead>
                             <tr className="border-b border-border/40">
-                                <th className="text-left py-2 text-[10px] font-bold text-text-muted uppercase tracking-widest w-[22%]">
+                                <th className="text-left py-2 text-[10px] font-bold text-text-muted uppercase tracking-widest w-[20%]">
                                     Email
                                 </th>
-                                <th className="text-left py-2 text-[10px] font-bold text-text-muted uppercase tracking-widest w-[18%]">
+                                <th className="text-left py-2 text-[10px] font-bold text-text-muted uppercase tracking-widest w-[15%]">
                                     Contact
                                 </th>
                                 <th className="text-left py-2 text-[10px] font-bold text-text-muted uppercase tracking-widest">
                                     Message
                                 </th>
-                                <th className="text-left py-2 text-[10px] font-bold text-text-muted uppercase tracking-widest w-[110px]">
+                                <th className="text-left py-2 text-[10px] font-bold text-text-muted uppercase tracking-widest w-[100px]">
                                     Status
+                                </th>
+                                <th className="text-left py-2 text-[10px] font-bold text-text-muted uppercase tracking-widest w-[220px]">
+                                    Action
                                 </th>
                             </tr>
                         </thead>
@@ -336,6 +366,45 @@ function MessagesCard({ authedFetch }) {
                                         >
                                             {m.read ? 'Read' : 'Unread'}
                                         </button>
+                                    </td>
+                                    <td className="py-3 pr-1">
+                                        {m.action ? (
+                                            <div
+                                                onClick={(e) => e.stopPropagation()}
+                                                title="Action already recorded"
+                                                className="inline-flex items-center gap-1.5 w-full px-3 py-1.5 rounded-lg border border-text-muted/20 bg-text-muted/10 text-text-muted text-xs font-medium cursor-not-allowed select-none"
+                                            >
+                                                <svg className="w-3 h-3 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                                                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                                                </svg>
+                                                <span className="truncate">
+                                                    {ACTION_OPTIONS.find((o) => o.value === m.action)?.label || m.action}
+                                                </span>
+                                            </div>
+                                        ) : (
+                                            <div className="relative" onClick={(e) => e.stopPropagation()}>
+                                                <select
+                                                    value=""
+                                                    onChange={(e) => { e.stopPropagation(); setAction(m, e.target.value) }}
+                                                    disabled={updatingActionId === m.id}
+                                                    title="Record how you responded"
+                                                    className="appearance-none w-full pl-3 pr-8 py-1.5 rounded-lg bg-background border border-border text-text-primary text-xs font-medium cursor-pointer focus:outline-none focus:border-primary/60 hover:border-primary/40 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+                                                >
+                                                    {ACTION_OPTIONS.map((opt) => (
+                                                        <option key={opt.value} value={opt.value}>{opt.label}</option>
+                                                    ))}
+                                                </select>
+                                                <svg
+                                                    className="w-3.5 h-3.5 absolute right-2.5 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none"
+                                                    fill="none"
+                                                    viewBox="0 0 24 24"
+                                                    stroke="currentColor"
+                                                    strokeWidth={2}
+                                                >
+                                                    <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                                                </svg>
+                                            </div>
+                                        )}
                                     </td>
                                 </tr>
                             ))}
@@ -393,6 +462,16 @@ function MessagesCard({ authedFetch }) {
     )
 }
 
+
+// Whitelist of categories to show in the Knowledge Base card, in display order.
+// Maps the stored source filename → the clean label shown to the admin.
+// `descriptionOverride` (optional) replaces the auto-generated description from the DB.
+const CATEGORY_DISPLAY = [
+    { source: 'Admission.txt',                    label: 'Admissions',             descriptionOverride: 'Admission process, eligibility verification, program preferences, and hostel accommodation.' },
+    { source: 'Fee and Payment.txt',              label: 'Fee and Payment',        descriptionOverride: 'University admission fees, security deposits, and refund policies.' },
+    { source: 'Scholarship and Financial Aid.txt',label: 'Scholarships',           descriptionOverride: 'Financial aid, and loan application processes.' },
+    { source: 'Programs and Curriculum.txt',      label: 'Program and Curriculum', descriptionOverride: 'Offered programs' },
+]
 
 function StatsCard({ authedFetch }) {
     const [stats, setStats] = useState(null)
@@ -456,14 +535,19 @@ function StatsCard({ authedFetch }) {
                                 </tr>
                             </thead>
                             <tbody>
-                                {stats.sources.map((s) => (
-                                    <tr key={s.source} className="border-b border-border/20">
-                                        <td className="py-2.5 font-medium font-mono text-text-primary text-xs">{s.source}</td>
-                                        <td className="py-2.5 text-text-secondary">
-                                            {s.description || <span className="text-text-muted">&mdash;</span>}
-                                        </td>
-                                    </tr>
-                                ))}
+                                {CATEGORY_DISPLAY.map(({ source, label, descriptionOverride }) => {
+                                    const row = stats.sources.find((s) => s.source === source)
+                                    if (!row) return null
+                                    const description = descriptionOverride || row.description
+                                    return (
+                                        <tr key={source} className="border-b border-border/20">
+                                            <td className="py-2.5 font-medium text-text-primary text-xs">{label}</td>
+                                            <td className="py-2.5 text-text-secondary">
+                                                {description || <span className="text-text-muted">&mdash;</span>}
+                                            </td>
+                                        </tr>
+                                    )
+                                })}
                             </tbody>
                         </table>
                     </>

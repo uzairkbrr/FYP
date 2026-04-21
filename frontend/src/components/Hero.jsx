@@ -14,7 +14,7 @@ export default function Hero({ onStartQuery }) {
             <div className="max-w-[996px] mx-auto text-center relative">
                 {/* Title */}
                 <h1 className="text-7xl sm:text-8xl font-black text-white leading-[1] mb-8 tracking-tight font-serif italic drop-shadow-lg">
-                    Mahir<span className="text-primary not-italic">Connect</span>
+                    Mahir <span className="text-primary not-italic">Connect</span>
                 </h1>
 
                 {/* Description */}

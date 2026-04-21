@@ -1,0 +1,29 @@
+[
+  {
+    "id": "77461a38a28840e6a4468080a230a61f",
+    "email": "p229021@pwr.nu.edu.pk",
+    "contact": "03407730737",
+    "message": "Hi, This is testing;",
+    "read": true,
+    "created_at": "2026-04-21T07:23:58.690568+00:00",
+    "action": "call"
+  },
+  {
+    "id": "c5d8542dddba4fc591ae59a649fa1278",
+    "email": "uzair@gmail.com",
+    "contact": "03123456789",
+    "message": "This is testing, everything is done! ?",
+    "read": true,
+    "created_at": "2026-04-21T08:27:11.427022+00:00",
+    "action": "whatsapp"
+  },
+  {
+    "id": "fd8d709c116f47f6b5805d7aa854b8fe",
+    "email": "arsalan@gmail.com",
+    "contact": "03123456789",
+    "message": "Hey, Testing the custom message feature.",
+    "read": true,
+    "action": "",
+    "created_at": "2026-04-21T09:00:26.527372+00:00"
+  }
+]

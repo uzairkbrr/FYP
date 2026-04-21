@@ -442,7 +442,7 @@ export default function ChatWidget() {
                     <div className="flex justify-center">
                         <div className="px-4 py-2 rounded-full bg-primary/10 animate-pulse">
                             <span className="text-primary text-xs font-bold tabular-nums">
-                                Recording {timer}s / {MAX_SECONDS}s
+                                Recording
                             </span>
                         </div>
                     </div>
