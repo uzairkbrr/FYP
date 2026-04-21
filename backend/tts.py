@@ -1,7 +1,7 @@
 import base64
 import re
 import httpx
-from .config import ELEVENLABS_API_KEY, ELEVENLABS_VOICE_ID, ELEVENLABS_MODEL, UPLIFTAI_API_KEY
+from .config import ELEVENLABS_API_KEY, ELEVENLABS_VOICE_ID, ELEVENLABS_MODEL
 
 # Ordered longest-first so "FAST-NUCES" matches before "NUCES", "CGPA" before "GPA", etc.
 _PRONUNCIATION_MAP = [
@@ -65,70 +65,31 @@ def preprocess_for_tts(text: str) -> str:
     return text
 
 
-# ELEVENLABS IMPLEMENTATION — kept for reference, replaced by Uplift AI below
-# def synthesize_speech(text: str) -> str:
-#     """
-#     Synthesize text to speech using ElevenLabs multilingual model.
-#
-#     Returns a base64-encoded data URL (audio/mpeg).
-#     """
-#     text = preprocess_for_tts(text)
-#
-#     resp = httpx.post(
-#         f"https://api.elevenlabs.io/v1/text-to-speech/{ELEVENLABS_VOICE_ID}",
-#         headers={
-#             "xi-api-key": ELEVENLABS_API_KEY,
-#             "Content-Type": "application/json",
-#         },
-#         json={
-#             "text": text,
-#             "model_id": ELEVENLABS_MODEL,
-#             "voice_settings": {
-#                 "stability": 0.5,
-#                 "similarity_boost": 0.75,
-#             },
-#         },
-#         timeout=30.0,
-#     )
-#     resp.raise_for_status()
-#
-#     b64 = base64.b64encode(resp.content).decode("utf-8")
-#     return f"data:audio/mpeg;base64,{b64}"
-
-
-# UPLIFT AI IMPLEMENTATION
 def synthesize_speech(text: str) -> str:
     """
-    Synthesize text to speech using Uplift AI (optimized for natural Urdu).
+    Synthesize text to speech using ElevenLabs multilingual model.
 
-    Returns a base64-encoded data URL (audio/mpeg) — same shape as before,
-    so the rest of the pipeline needs zero changes.
+    Returns a base64-encoded data URL (audio/mpeg).
     """
-    processed_text = preprocess_for_tts(text)
+    text = preprocess_for_tts(text)
 
-    url = "https://api.upliftai.org/v1/synthesis/text-to-speech"
-
-    headers = {
-        "Authorization": f"Bearer {UPLIFTAI_API_KEY}",
-        "Content-Type": "application/json",
-    }
-
-    payload = {
-        # v_meklc281  — Urdu female (default, used for this project)
-        # v_30s70t3a  — News/broadcaster voice
-        # v_yypgzenx  — Dada Jee storytelling voice
-        # v_8eelc901  — General purpose voice
-        "voiceId": "v_8eelc901",
-        "text": processed_text,
-        "outputFormat": "MP3_22050_32",
-    }
-
-    resp = httpx.post(url, json=payload, headers=headers, timeout=30.0)
+    resp = httpx.post(
+        f"https://api.elevenlabs.io/v1/text-to-speech/{ELEVENLABS_VOICE_ID}",
+        headers={
+            "xi-api-key": ELEVENLABS_API_KEY,
+            "Content-Type": "application/json",
+        },
+        json={
+            "text": text,
+            "model_id": ELEVENLABS_MODEL,
+            "voice_settings": {
+                "stability": 0.5,
+                "similarity_boost": 0.75,
+            },
+        },
+        timeout=30.0,
+    )
     resp.raise_for_status()
 
-    # Uplift AI returns raw MP3 bytes directly
-    mp3_bytes = resp.content
-
-    # Convert to base64 data URL — same format as the ElevenLabs path
-    audio_base64 = base64.b64encode(mp3_bytes).decode("utf-8")
-    return f"data:audio/mpeg;base64,{audio_base64}"
+    b64 = base64.b64encode(resp.content).decode("utf-8")
+    return f"data:audio/mpeg;base64,{b64}"
