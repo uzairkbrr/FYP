@@ -30,7 +30,7 @@ const teamMembers = [
 export default function Team() {
     return (
         <section id="team-section" className="py-24 px-6 bg-background relative overflow-hidden">
-            <div className="max-w-7xl mx-auto">
+            <div className="max-w-[1380px] mx-auto">
                 <div className="text-center mb-16">
                     <h2 className="text-5xl font-black text-text-primary mb-4 tracking-tight font-serif italic">The <span className="text-primary not-italic">Architects</span></h2>
                 </div>

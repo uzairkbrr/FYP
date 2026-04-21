@@ -1,4 +1,4 @@
-# Mahir on Call
+# MahirConnect
 
 A voice assistant for Urdu-based queries, designed as a final year project (FYP) for FAST-NUCES. It processes voice inputs using speech-to-text, retrieves relevant information via retrieval-augmented generation (RAG), and responds with synthesized speech.
 

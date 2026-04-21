@@ -1,5 +1,5 @@
 """
-Mahir on Call - Automated Test Suite
+MahirConnect - Automated Test Suite
 For FYP Presentation & Evaluation
 """
 
@@ -317,7 +317,7 @@ class MahirTestSuite:
     def run_all_tests(self):
         """Run all test suites"""
         print("\n" + "="*70)
-        print("MAHIR ON CALL - FYP TEST SUITE")
+        print("MAHIRCONNECT - FYP TEST SUITE")
         print("="*70)
         
         # Configuration check

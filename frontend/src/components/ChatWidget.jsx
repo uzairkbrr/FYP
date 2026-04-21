@@ -3,6 +3,7 @@ import useVoiceRecorder from '../hooks/useVoiceRecorder'
 import LiveWaveform from './LiveWaveform'
 
 const MAX_SECONDS = 30
+const API_URL = 'http://localhost:8000'
 
 // Tap-able starter queries shown just above the input while the chat is empty.
 // Each row displays the query in Roman Urdu; tapping sends it as a text query.
@@ -72,9 +73,16 @@ function RichText({ text }) {
 
 export default function ChatWidget() {
     const [isOpen, setIsOpen] = useState(false)
-    const [showContact, setShowContact] = useState(false)
+    const [showContactForm, setShowContactForm] = useState(false)
     const [input, setInput] = useState('')
     const [playingId, setPlayingId] = useState(null)
+
+    // Custom Message form state
+    const [formEmail, setFormEmail] = useState('')
+    const [formContact, setFormContact] = useState('')
+    const [formMessage, setFormMessage] = useState('')
+    const [formStatus, setFormStatus] = useState('idle') // idle | sending | success | error
+    const [formError, setFormError] = useState('')
 
     const {
         status,
@@ -165,6 +173,54 @@ export default function ChatWidget() {
         reset()
     }
 
+    const resetContactForm = () => {
+        setFormEmail('')
+        setFormContact('')
+        setFormMessage('')
+        setFormStatus('idle')
+        setFormError('')
+    }
+
+    const handleToggleContactForm = () => {
+        setShowContactForm((prev) => {
+            const next = !prev
+            if (!next) resetContactForm()
+            return next
+        })
+    }
+
+    const handleSubmitContactForm = async (e) => {
+        e.preventDefault()
+        const email = formEmail.trim()
+        const contact = formContact.trim()
+        const message = formMessage.trim()
+        if (!email || !contact || !message) {
+            setFormError('All fields are required.')
+            setFormStatus('error')
+            return
+        }
+        setFormStatus('sending')
+        setFormError('')
+        try {
+            const res = await fetch(`${API_URL}/contact-message`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, contact, message }),
+            })
+            if (!res.ok) {
+                const err = await res.json().catch(() => ({}))
+                throw new Error(err.detail || 'Failed to send message.')
+            }
+            setFormStatus('success')
+            setFormEmail('')
+            setFormContact('')
+            setFormMessage('')
+        } catch (err) {
+            setFormStatus('error')
+            setFormError('Please try again.')
+        }
+    }
+
     const hasText = input.trim().length > 0
 
     // ── Floating trigger button ──
@@ -173,7 +229,7 @@ export default function ChatWidget() {
             <button
                 onClick={() => setIsOpen(true)}
                 className="fixed bottom-6 right-6 z-50 w-14 h-14 rounded-full bg-primary text-white shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300 flex items-center justify-center cursor-pointer"
-                aria-label="Open Mahir on Call"
+                aria-label="Open MahirConnect"
             >
                 <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
@@ -194,7 +250,7 @@ export default function ChatWidget() {
                     <svg className="w-5 h-5 text-white/80" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                         <path strokeLinecap="round" strokeLinejoin="round" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
                     </svg>
-                    <h3 className="text-white font-bold text-sm tracking-wide">Mahir on Call</h3>
+                    <h3 className="text-white font-bold text-sm tracking-wide">MahirConnect</h3>
                 </div>
                 <div className="flex items-center gap-1">
                     {messages.length > 0 && (
@@ -209,12 +265,13 @@ export default function ChatWidget() {
                         </button>
                     )}
                     <button
-                        onClick={() => setShowContact(!showContact)}
-                        className={`p-1.5 rounded-lg transition-colors cursor-pointer ${showContact ? 'bg-white/20 text-white' : 'text-white/60 hover:text-white hover:bg-white/10'}`}
-                        title="Contact Moderator"
+                        onClick={handleToggleContactForm}
+                        className={`p-1.5 rounded-lg transition-colors cursor-pointer ${showContactForm ? 'bg-white/20 text-white' : 'text-white/60 hover:text-white hover:bg-white/10'}`}
+                        title="Custom Message"
+                        aria-label="Custom Message"
                     >
                         <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                         </svg>
                     </button>
                     <button
@@ -229,25 +286,81 @@ export default function ChatWidget() {
                 </div>
             </div>
 
-            {/* Contact dropdown */}
-            {showContact && (
-                <div className="px-4 py-2.5 border-b border-border bg-background/80 flex items-center gap-2 shrink-0">
-                    <span className="text-[10px] font-bold text-text-muted uppercase tracking-widest mr-auto">Contact</span>
-                    <a href="mailto:admissions@pwr.nu.edu.pk" className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-surface border border-border text-text-secondary text-xs font-semibold hover:border-primary/40 hover:text-primary transition-colors">
-                        <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                        </svg>
-                        Email
-                    </a>
-                    <a href="tel:+92911111128128" className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-surface border border-border text-text-secondary text-xs font-semibold hover:border-primary/40 hover:text-primary transition-colors">
-                        <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
-                        </svg>
-                        Call
-                    </a>
-                </div>
-            )}
+            {/* Custom Message form — replaces the messages/input area while active */}
+            {showContactForm ? (
+                <div className="flex-1 overflow-y-auto px-5 py-5 scrollbar-thin">
+                    <div className="mb-4">
+                        <h4 className="text-sm font-bold text-text-primary">Send a custom message</h4>
+                        <p className="text-xs text-text-muted mt-1">Leave your details and we'll get back to you.</p>
+                    </div>
 
+                    {formStatus === 'success' ? (
+                        <div className="px-4 py-4 rounded-lg bg-green-50 border border-green-200 text-center">
+                            <p className="text-green-800 text-sm font-bold">Message sent.</p>
+                            <p className="text-green-700/80 text-xs mt-1">We'll reach out to you soon.</p>
+                            <button
+                                type="button"
+                                onClick={resetContactForm}
+                                className="mt-3 text-primary text-xs font-bold uppercase tracking-widest hover:underline cursor-pointer"
+                            >
+                                Send another
+                            </button>
+                        </div>
+                    ) : (
+                        <form onSubmit={handleSubmitContactForm} className="space-y-3">
+                            <div>
+                                <label className="block text-[10px] font-bold text-text-muted uppercase tracking-widest mb-1.5">Email</label>
+                                <input
+                                    type="email"
+                                    value={formEmail}
+                                    onChange={(e) => setFormEmail(e.target.value)}
+                                    placeholder="you@example.com"
+                                    disabled={formStatus === 'sending'}
+                                    className="w-full px-3 py-2 rounded-lg bg-background border border-border text-text-primary text-sm placeholder:text-text-muted focus:outline-none focus:border-primary/60 transition-colors disabled:opacity-50"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-[10px] font-bold text-text-muted uppercase tracking-widest mb-1.5">Contact Number</label>
+                                <input
+                                    type="tel"
+                                    inputMode="numeric"
+                                    value={formContact}
+                                    onChange={(e) => setFormContact(e.target.value.replace(/\D/g, ''))}
+                                    placeholder="923001234567"
+                                    disabled={formStatus === 'sending'}
+                                    className="w-full px-3 py-2 rounded-lg bg-background border border-border text-text-primary text-sm placeholder:text-text-muted focus:outline-none focus:border-primary/60 transition-colors disabled:opacity-50"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-[10px] font-bold text-text-muted uppercase tracking-widest mb-1.5">Message</label>
+                                <textarea
+                                    value={formMessage}
+                                    onChange={(e) => setFormMessage(e.target.value)}
+                                    placeholder="How can we help?"
+                                    disabled={formStatus === 'sending'}
+                                    rows={5}
+                                    className="w-full px-3 py-2 rounded-lg bg-background border border-border text-text-primary text-sm placeholder:text-text-muted focus:outline-none focus:border-primary/60 transition-colors resize-none disabled:opacity-50"
+                                />
+                            </div>
+
+                            {formStatus === 'error' && formError && (
+                                <div className="px-3 py-2 rounded-lg bg-red-50 border border-red-100">
+                                    <p className="text-red-700 text-xs font-bold text-center">{formError}</p>
+                                </div>
+                            )}
+
+                            <button
+                                type="submit"
+                                disabled={formStatus === 'sending'}
+                                className="w-full py-2.5 rounded-lg bg-primary text-white text-sm font-bold uppercase tracking-widest hover:bg-primary-dark transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                                {formStatus === 'sending' ? 'Sending' : 'Send Message'}
+                            </button>
+                        </form>
+                    )}
+                </div>
+            ) : (
+                <>
             {/* Messages */}
             <div className="flex-1 overflow-y-auto p-4 space-y-4 scrollbar-thin">
                 {messages.length === 0 && status === 'idle' && (
@@ -446,6 +559,8 @@ export default function ChatWidget() {
                     </div>
                 )}
             </div>
+                </>
+            )}
         </div>
     )
 }

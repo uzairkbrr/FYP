@@ -1,19 +1,25 @@
+import io
 import json
 import secrets
+import threading
 import traceback
+import uuid
+from datetime import datetime, timezone
+from pathlib import Path
+
 import httpx
 from fastapi import FastAPI, UploadFile, File, Form, HTTPException, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from .stt import transcribe_audio
 from .transliterate import urdu_to_roman
 from .rag import generate_response, ingest_text, get_collection_stats
 from .tts import synthesize_speech
-from .config import ADMIN_USERNAME, ADMIN_PASSWORD
+from .config import ADMIN_USERNAME, ADMIN_PASSWORD, MESSAGES_FILE
 
-app = FastAPI(title="Mahir on Call API")
+app = FastAPI(title="MahirConnect API")
 
 app.add_middleware(
     CORSMiddleware,
@@ -160,12 +166,71 @@ def health():
 
 
 # ---------------------------------------------------------------------------
+# Contact-form inbox (JSON-file backed)
+# ---------------------------------------------------------------------------
+
+_messages_lock = threading.Lock()
+
+
+def _load_messages() -> list:
+    path = Path(MESSAGES_FILE)
+    if not path.exists():
+        return []
+    try:
+        with path.open("r", encoding="utf-8") as f:
+            data = json.load(f)
+        return data if isinstance(data, list) else []
+    except Exception:
+        return []
+
+
+def _save_messages(messages: list) -> None:
+    path = Path(MESSAGES_FILE)
+    with path.open("w", encoding="utf-8") as f:
+        json.dump(messages, f, ensure_ascii=False, indent=2)
+
+
+class ContactMessageRequest(BaseModel):
+    email: str = Field(..., min_length=1, max_length=200)
+    contact: str = Field(..., min_length=1, max_length=40)
+    message: str = Field(..., min_length=1, max_length=2000)
+
+
+@app.post("/contact-message")
+def submit_contact_message(body: ContactMessageRequest):
+    """Accept a contact-form submission from the chat widget."""
+    email = body.email.strip()
+    contact = body.contact.strip()
+    message = body.message.strip()
+
+    if "@" not in email or "." not in email.split("@")[-1]:
+        raise HTTPException(status_code=400, detail="Invalid email address.")
+
+    entry = {
+        "id": uuid.uuid4().hex,
+        "email": email,
+        "contact": contact,
+        "message": message,
+        "read": False,
+        "created_at": datetime.now(timezone.utc).isoformat(),
+    }
+
+    with _messages_lock:
+        messages = _load_messages()
+        messages.append(entry)
+        _save_messages(messages)
+
+    return {"success": True, "id": entry["id"]}
+
+
+# ---------------------------------------------------------------------------
 # Admin endpoints
 # ---------------------------------------------------------------------------
 
 _security = HTTPBasic()
 
-MAX_UPLOAD_SIZE = 2 * 1024 * 1024  # 2 MB
+MAX_UPLOAD_SIZE = 10 * 1024 * 1024  # 10 MB — PDFs and DOCX are often bigger than plain text
+SUPPORTED_EXTENSIONS = (".txt", ".pdf", ".docx")
 
 
 def _verify_admin(credentials: HTTPBasicCredentials = Depends(_security)):
@@ -180,26 +245,75 @@ def _verify_admin(credentials: HTTPBasicCredentials = Depends(_security)):
     return credentials.username
 
 
+def _extract_text(filename: str, content_bytes: bytes) -> str:
+    """Extract plain text from a supported file type.
+
+    Raises HTTPException(400) with a readable message if extraction fails.
+    """
+    name = filename.lower()
+
+    if name.endswith(".txt"):
+        try:
+            return content_bytes.decode("utf-8")
+        except UnicodeDecodeError:
+            raise HTTPException(
+                status_code=400,
+                detail="File must be valid UTF-8 text.",
+            )
+
+    if name.endswith(".pdf"):
+        try:
+            from PyPDF2 import PdfReader
+            reader = PdfReader(io.BytesIO(content_bytes))
+            pages = [(p.extract_text() or "") for p in reader.pages]
+            return "\n\n".join(pages)
+        except HTTPException:
+            raise
+        except Exception as e:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Could not read PDF: {e}",
+            )
+
+    if name.endswith(".docx"):
+        try:
+            from docx import Document
+            doc = Document(io.BytesIO(content_bytes))
+            return "\n".join(p.text for p in doc.paragraphs if p.text)
+        except HTTPException:
+            raise
+        except Exception as e:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Could not read DOCX: {e}",
+            )
+
+    raise HTTPException(
+        status_code=400,
+        detail=f"Unsupported file type. Accepted: {', '.join(SUPPORTED_EXTENSIONS)}",
+    )
+
+
 @app.post("/admin/ingest")
 def admin_ingest(
     file: UploadFile = File(...),
     _user: str = Depends(_verify_admin),
 ):
-    """Upload a .txt file to chunk, embed, and add to the knowledge base."""
-    if not file.filename or not file.filename.lower().endswith(".txt"):
-        raise HTTPException(status_code=400, detail="Only .txt files are accepted.")
+    """Upload a supported file, extract text, chunk, embed, and add to the KB."""
+    if not file.filename or not file.filename.lower().endswith(SUPPORTED_EXTENSIONS):
+        raise HTTPException(
+            status_code=400,
+            detail=f"Unsupported file type. Accepted: {', '.join(SUPPORTED_EXTENSIONS)}",
+        )
 
     content_bytes = file.file.read()
     if len(content_bytes) > MAX_UPLOAD_SIZE:
-        raise HTTPException(status_code=400, detail="File exceeds 2 MB limit.")
+        raise HTTPException(status_code=400, detail="File exceeds 10 MB limit.")
 
-    try:
-        text = content_bytes.decode("utf-8")
-    except UnicodeDecodeError:
-        raise HTTPException(status_code=400, detail="File must be valid UTF-8 text.")
+    text = _extract_text(file.filename, content_bytes)
 
     if not text.strip():
-        raise HTTPException(status_code=400, detail="File is empty.")
+        raise HTTPException(status_code=400, detail="File contains no extractable text.")
 
     source_label = file.filename
     print(f"[admin/ingest] Ingesting {source_label} ({len(text)} chars)...")
@@ -213,3 +327,39 @@ def admin_ingest(
 def admin_stats(_user: str = Depends(_verify_admin)):
     """Return knowledge base statistics."""
     return get_collection_stats()
+
+
+@app.get("/admin/messages")
+def admin_list_messages(_user: str = Depends(_verify_admin)):
+    """Return all contact-form submissions, newest first."""
+    with _messages_lock:
+        messages = _load_messages()
+    # Newest first
+    messages.sort(key=lambda m: m.get("created_at", ""), reverse=True)
+    return {"messages": messages}
+
+
+class ReadToggleRequest(BaseModel):
+    read: bool = True
+
+
+@app.post("/admin/messages/{message_id}/read")
+def admin_mark_message(
+    message_id: str,
+    body: ReadToggleRequest,
+    _user: str = Depends(_verify_admin),
+):
+    """Mark a message read/unread."""
+    with _messages_lock:
+        messages = _load_messages()
+        found = False
+        for m in messages:
+            if m.get("id") == message_id:
+                m["read"] = bool(body.read)
+                found = True
+                break
+        if not found:
+            raise HTTPException(status_code=404, detail="Message not found.")
+        _save_messages(messages)
+
+    return {"success": True, "id": message_id, "read": body.read}

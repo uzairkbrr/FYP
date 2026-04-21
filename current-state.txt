@@ -1,6 +1,6 @@
 ================================================================================
                     CURRENT STATE OF REPOSITORY: FYP2_P1
-                    "Mahir on Call" - FAST-NUCES FYP Project
+                    "MahirConnect" - FAST-NUCES FYP Project
                     Snapshot Date: April 15, 2026 (Updated)
 ================================================================================
 
@@ -8,7 +8,7 @@
 1. PROJECT OVERVIEW
 ================================================================================
 
-   Project Name    : Mahir on Call
+   Project Name    : MahirConnect
    Description     : An Urdu-based voice assistant for FAST-NUCES Peshawar's
                      front desk. It answers student queries about admissions,
                      fee structures, scholarships, and academic programs using
@@ -351,7 +351,7 @@
     B. Page Sections (single-page app, Home.jsx):
     ----------------------------------------------
     1. Navbar       - Sticky nav with brand, links, theme toggle
-    2. Hero         - Title "Mahir on Call", tagline, "Start Speaking Now" CTA
+    2. Hero         - Title "MahirConnect", tagline, "Start Speaking Now" CTA
     3. VoiceCard    - *** UPDATED: Connected to backend ***
                       - Records audio via MediaRecorder API (max 30s)
                       - Sends to POST /voice-query
@@ -373,7 +373,7 @@
     -------------------------------------------------------------
     - Floating circular button at bottom-right corner (z-50)
     - Clicking opens a 380x560px Messenger-style panel
-    - Header: "Mahir on Call" + clear chat + contact moderator + close
+    - Header: "MahirConnect" + clear chat + contact moderator + close
     - Contact Moderator dropdown:
       - Email: admissions@pwr.nu.edu.pk (mailto: link)
       - Call: (091) 111 128 128 (tel: link)

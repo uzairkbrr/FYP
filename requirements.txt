@@ -10,3 +10,5 @@ fastapi[security]
 uvicorn
 python-multipart
 httpx
+pypdf2
+python-docx

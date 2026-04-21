@@ -3,7 +3,7 @@ import React from 'react'
 export default function ProjectInfo() {
     return (
         <section id="project-section" className="py-24 px-6 bg-background">
-            <div className="max-w-7xl mx-auto">
+            <div className="max-w-[1380px] mx-auto">
                 <div className="text-center mb-16">
                     <h2 className="text-4xl font-extrabold text-text-primary mb-4 tracking-tight">Understanding the Mission</h2>
                 </div>
@@ -37,7 +37,7 @@ export default function ProjectInfo() {
                             <h3 className="text-2xl font-black text-text-primary tracking-tight font-serif uppercase group-hover:text-success transition-colors">The Solution</h3>
                         </div>
                         <p className="text-text-secondary leading-relaxed font-medium text-base">
-                            <strong>Mahir on Call</strong> scaleable Urdu-based voice agent for
+                            <strong>MahirConnect</strong> scaleable Urdu-based voice agent for
                             seamless information retrieval. It utilizes speech-to-text
                             processing and semantic search to provide context-aware responses instantly.
                         </p>

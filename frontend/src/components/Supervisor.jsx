@@ -6,12 +6,12 @@ export default function Supervisor() {
             {/* Subtle background glow */}
             <div className="absolute -bottom-24 -left-24 w-96 h-96 bg-primary/5 blur-[100px] -z-10 rounded-full" />
 
-            <div className="max-w-7xl mx-auto">
+            <div className="max-w-[1380px] mx-auto">
                 <div className="text-center mb-16">
                     <h2 className="text-5xl font-black text-text-primary mb-4 tracking-tight font-serif italic">Supervisor</h2>
                 </div>
 
-                <div className="bg-surface rounded-xl border border-border/60 overflow-hidden max-w-5xl mx-auto min-h-[300px] flex flex-col md:flex-row transition-all duration-500 hover:shadow-2xl hover:shadow-primary/5">
+                <div className="bg-surface rounded-xl border border-border/60 overflow-hidden max-w-[1124px] mx-auto min-h-[300px] flex flex-col md:flex-row transition-all duration-500 hover:shadow-2xl hover:shadow-primary/5">
                     {/* Left – Info */}
                     <div className="flex-1 p-12 md:p-16 flex flex-col justify-center gap-4 relative overflow-hidden">
                         <div>
