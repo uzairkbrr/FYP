@@ -85,10 +85,10 @@ export default function AdminPage() {
 
 function AdminNavbar({ onSignOut }) {
     return (
-        <nav className="sticky top-0 z-40 bg-surface/80 backdrop-blur-md border-b border-border transition-all duration-300">
+        <nav className="sticky top-0 z-40 bg-[#121F27] backdrop-blur-md border-b border-border transition-all duration-300">
             <div className="max-w-[1380px] mx-auto px-6 py-4 flex items-center justify-between">
                 {/* Brand */}
-                <Link to="/admin" className="text-xl font-extrabold text-text-primary tracking-tight">
+                <Link to="/admin" className="text-xl font-extrabold text-white tracking-tight">
                     Mahir<span className="text-primary">Connect</span>
                 </Link>
 
@@ -96,7 +96,7 @@ function AdminNavbar({ onSignOut }) {
                 <div className="flex items-center gap-8">
                     <Link
                         to="/"
-                        className="text-sm font-bold text-text-secondary hover:text-primary transition-colors"
+                        className="text-sm font-bold text-white hover:text-primary transition-colors"
                     >
                         Home
                     </Link>
@@ -104,7 +104,7 @@ function AdminNavbar({ onSignOut }) {
                         <>
                             <a
                                 href="#upload-section"
-                                className="text-sm font-bold text-text-secondary hover:text-primary transition-colors"
+                                className="text-sm font-bold text-white hover:text-primary transition-colors"
                             >
                                 Upload file
                             </a>

@@ -1,3 +1,4 @@
 .env
 .venv/
+.claude/
 chroma_db/

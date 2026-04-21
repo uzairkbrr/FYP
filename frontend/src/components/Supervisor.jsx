@@ -27,7 +27,7 @@ export default function Supervisor() {
                             <p className="text-text-muted font-bold text-xs uppercase tracking-widest mb-1">
                                 Department of Computer Science
                             </p>
-                            <p className="text-text-muted font-bold text-[10px] uppercase tracking-widest opacity-80">
+                            <p className="text-text-muted font-bold text-[14px] uppercase tracking-widest opacity-80">
                                 National University of Computer and Emerging Sciences, Peshawar
                             </p>
                         </div>
