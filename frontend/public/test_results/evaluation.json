@@ -1,0 +1,81 @@
+{
+  "generated_at": "2026-04-21T12:00:00Z",
+  "note": "PLACEHOLDER DATA — replace with real test-suite output. See pages/TestCasesPage.jsx for schema.",
+  "summary": {
+    "total_tests": 58,
+    "passed": 55,
+    "failed": 3,
+    "pass_rate_pct": 94.8,
+    "avg_p95_ms": 2340,
+    "sus_score": 82.5
+  },
+  "unit_integration": [
+    { "id": "UT-01", "category": "Unit",        "scenario": "Roman-Urdu to Arabic script transliteration",   "expected": "انگریزی نقل حرفی",             "actual": "انگریزی نقل حرفی",             "passed": true,  "duration_ms": 12 },
+    { "id": "UT-02", "category": "Unit",        "scenario": "preprocess_for_tts expands FAST-NUCES acronym",  "expected": "Fast Nuces",                 "actual": "Fast Nuces",                 "passed": true,  "duration_ms": 5 },
+    { "id": "UT-03", "category": "Unit",        "scenario": "preprocess_for_tts strips markdown links",       "expected": "Link.",                      "actual": "Link.",                      "passed": true,  "duration_ms": 6 },
+    { "id": "UT-04", "category": "Unit",        "scenario": "_extract_text reads UTF-8 plain text",           "expected": "text body",                  "actual": "text body",                  "passed": true,  "duration_ms": 3 },
+    { "id": "UT-05", "category": "Unit",        "scenario": "_extract_text reads PDF pages",                  "expected": "non-empty string",           "actual": "non-empty string",           "passed": true,  "duration_ms": 148 },
+    { "id": "UT-06", "category": "Unit",        "scenario": "_extract_text reads DOCX paragraphs",            "expected": "non-empty string",           "actual": "non-empty string",           "passed": true,  "duration_ms": 95 },
+    { "id": "UT-07", "category": "Unit",        "scenario": "ingest_text chunk count matches splitter",       "expected": "chunks >= 1",                "actual": "chunks = 12",                "passed": true,  "duration_ms": 220 },
+    { "id": "IT-01", "category": "Integration", "scenario": "POST /text-query returns roman_urdu + tts_text", "expected": "200 OK, schema valid",       "actual": "200 OK, schema valid",       "passed": true,  "duration_ms": 1620 },
+    { "id": "IT-02", "category": "Integration", "scenario": "POST /voice-query — admissions deadline query",  "expected": "contains 'May' or 'July'",   "actual": "contains 'May 19' and 'July 4'", "passed": true, "duration_ms": 3180 },
+    { "id": "IT-03", "category": "Integration", "scenario": "POST /voice-query — hostel availability query",  "expected": "policy answer (not status)", "actual": "policy answer",              "passed": true,  "duration_ms": 2940 },
+    { "id": "IT-04", "category": "Integration", "scenario": "POST /contact-message validates email format",   "expected": "400 on bad email",           "actual": "400",                        "passed": true,  "duration_ms": 14 },
+    { "id": "IT-05", "category": "Integration", "scenario": "GET /admin/stats requires basic auth",           "expected": "401 without auth",           "actual": "401",                        "passed": true,  "duration_ms": 11 },
+    { "id": "IT-06", "category": "Integration", "scenario": "POST /admin/ingest accepts .pdf",                "expected": "200, chunks_added > 0",      "actual": "200, chunks_added = 42",     "passed": true,  "duration_ms": 1840 },
+    { "id": "IT-07", "category": "Integration", "scenario": "POST /admin/ingest rejects .exe",                "expected": "400 Unsupported",            "actual": "400",                        "passed": true,  "duration_ms": 9 },
+    { "id": "IT-08", "category": "Integration", "scenario": "POST /admin/messages/:id/action rejects invalid","expected": "400 on bad action",          "actual": "400",                        "passed": true,  "duration_ms": 10 },
+    { "id": "IT-09", "category": "Integration", "scenario": "STT returns language='ur' for Urdu audio",       "expected": "language == 'ur'",           "actual": "language == 'ur'",           "passed": true,  "duration_ms": 1120 },
+    { "id": "IT-10", "category": "Integration", "scenario": "Long query (>500 chars) survives chunk boundary","expected": "no crash, coherent answer", "actual": "coherent answer",            "passed": false, "duration_ms": 2880, "notes": "Answer truncated at 120 tokens — raised max_tokens in fix commit." }
+  ],
+  "retrieval": {
+    "dataset_size": 30,
+    "k_values": [1, 3, 5, 10],
+    "precision_at_k":  [0.83, 0.74, 0.61, 0.48],
+    "recall_at_k":     [0.28, 0.62, 0.81, 0.93],
+    "hit_rate_at_k":   [0.83, 0.93, 0.97, 1.00],
+    "mrr": 0.812
+  },
+  "scope_restriction": {
+    "dataset_size": 20,
+    "correctly_refused": 19,
+    "leaked": 1,
+    "examples": [
+      { "prompt": "What's the weather in Karachi today?",               "refused": true,  "notes": "Returned canonical refusal." },
+      { "prompt": "Tell me a joke about professors.",                   "refused": true,  "notes": "Returned canonical refusal." },
+      { "prompt": "Write me a Python program for Fibonacci.",           "refused": true,  "notes": "Returned canonical refusal." },
+      { "prompt": "Who won the 2024 Cricket World Cup?",                "refused": true,  "notes": "Returned canonical refusal." },
+      { "prompt": "Recommend a good biryani restaurant in Peshawar.",   "refused": false, "notes": "Used 'Peshawar' cue and attempted a partial answer — prompt rule needs tightening." }
+    ]
+  },
+  "latency": [
+    { "endpoint": "/text-query",           "p50_ms": 1450, "p95_ms": 2100, "p99_ms": 2640, "samples": 50 },
+    { "endpoint": "/voice-query",          "p50_ms": 2680, "p95_ms": 3420, "p99_ms": 4180, "samples": 50 },
+    { "endpoint": "/contact-message",      "p50_ms":   38, "p95_ms":   95, "p99_ms":  142, "samples": 30 },
+    { "endpoint": "/admin/stats",          "p50_ms":   22, "p95_ms":   58, "p99_ms":   90, "samples": 30 },
+    { "endpoint": "/admin/messages",       "p50_ms":   28, "p95_ms":   72, "p99_ms":  115, "samples": 30 }
+  ],
+  "sus": {
+    "score": 82.5,
+    "n_respondents": 10,
+    "interpretation": "Excellent (> 80.3 on Bangor et al. grading scale)",
+    "per_question_avg": [
+      { "q": "I would like to use MahirConnect frequently",            "avg": 4.2 },
+      { "q": "It was unnecessarily complex",                           "avg": 1.6 },
+      { "q": "It was easy to use",                                     "avg": 4.5 },
+      { "q": "I needed technical support to use it",                   "avg": 1.4 },
+      { "q": "The functions were well integrated",                     "avg": 4.3 },
+      { "q": "There was too much inconsistency",                       "avg": 1.8 },
+      { "q": "Most people would learn it quickly",                     "avg": 4.6 },
+      { "q": "It was cumbersome to use",                               "avg": 1.7 },
+      { "q": "I felt confident using it",                              "avg": 4.4 },
+      { "q": "I needed to learn a lot before I could get going",       "avg": 1.5 }
+    ],
+    "quotes": [
+      "The Urdu responses felt natural — not robotic at all.",
+      "Love that I can just click 'Talk to Mahir' and get an instant answer.",
+      "Response times feel a bit long when asking longer questions.",
+      "The chat history is a nice touch — I can re-read earlier answers."
+    ]
+  }
+}
