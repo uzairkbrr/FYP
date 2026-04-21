@@ -1,19 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import {
-    ResponsiveContainer,
-    PieChart, Pie, Cell,
-    Tooltip,
-} from 'recharts'
-import Navbar from '../components/Navbar'
-
-const COLOR_PRIMARY = '#0099CC'   // brand teal
-const COLOR_SUCCESS = '#22c55e'   // green
-const COLOR_DANGER = '#ef4444'    // red
-const COLOR_ACCENT = '#60a5fa'    // blue
-const COLOR_PURPLE = '#a855f7'
-const COLOR_AMBER = '#f59e0b'
-const GRID_STROKE = '#2a2a2f'
-const AXIS_STROKE = '#8a8a90'
+import { Link } from 'react-router-dom'
 
 export default function TestCasesPage() {
     const [data, setData] = useState(null)
@@ -31,7 +17,7 @@ export default function TestCasesPage() {
 
     return (
         <div className="min-h-screen font-sans">
-            <Navbar />
+            <TestCasesNavbar />
             <main className="max-w-[1380px] mx-auto px-6 py-16">
                 <header className="mb-12">
                     <h1 className="text-5xl font-black text-text-primary tracking-tight font-serif italic">
@@ -63,9 +49,51 @@ export default function TestCasesPage() {
 }
 
 
-function Card({ title, subtitle, children, className = '' }) {
+function TestCasesNavbar() {
     return (
-        <section className={`rounded-xl border border-border/60 bg-surface/50 backdrop-blur-sm overflow-hidden shadow-sm ${className}`}>
+        <nav className="sticky top-0 z-40 bg-[#121F27] backdrop-blur-md border-b border-border transition-all duration-300">
+            <div className="max-w-[1380px] mx-auto px-6 py-4 flex items-center justify-between">
+                {/* Brand */}
+                <Link to="/test-cases" className="text-xl font-extrabold text-white tracking-tight">
+                    Mahir<span className="text-primary">Connect</span>
+                </Link>
+
+                {/* Right-side links */}
+                <div className="flex items-center gap-8">
+                    <Link
+                        to="/"
+                        className="text-sm font-bold text-white hover:text-primary transition-colors"
+                    >
+                        Home
+                    </Link>
+                    <a
+                        href="#overview"
+                        className="text-sm font-bold text-white hover:text-primary transition-colors"
+                    >
+                        Overview
+                    </a>
+                    <a
+                        href="#unit-tests"
+                        className="text-sm font-bold text-white hover:text-primary transition-colors"
+                    >
+                        Unit Tests
+                    </a>
+                    <a
+                        href="#scope-restriction"
+                        className="text-sm font-bold text-white hover:text-primary transition-colors"
+                    >
+                        Scope Restriction
+                    </a>
+                </div>
+            </div>
+        </nav>
+    )
+}
+
+
+function Card({ id, title, subtitle, children, className = '' }) {
+    return (
+        <section id={id} className={`rounded-xl border border-border/60 bg-surface/50 backdrop-blur-sm overflow-hidden shadow-sm ${className}`}>
             {(title || subtitle) && (
                 <div className="px-8 py-5 border-b border-border/20">
                     {title && (
@@ -99,7 +127,7 @@ function ResponseTimeBanner({ responseTime }) {
     if (!responseTime) return null
     const { avg_seconds, samples, description } = responseTime
     return (
-        <section className="rounded-xl border border-primary/30 bg-primary/10 backdrop-blur-sm shadow-sm overflow-hidden">
+        <section id="overview" className="rounded-xl border border-primary/30 bg-primary/10 backdrop-blur-sm shadow-sm overflow-hidden">
             <div className="flex flex-col md:flex-row items-stretch">
                 <div className="shrink-0 flex items-center justify-center px-10 py-8 bg-primary/15 border-b md:border-b-0 md:border-r border-primary/20">
                     <div className="text-center">
@@ -121,24 +149,8 @@ function ResponseTimeBanner({ responseTime }) {
     )
 }
 
-function ChartTooltip({ active, payload, label }) {
-    if (!active || !payload || !payload.length) return null
-    return (
-        <div className="rounded-lg border border-border bg-surface/95 backdrop-blur px-3 py-2 text-xs shadow-xl">
-            {label && <p className="font-bold text-text-primary mb-1">{label}</p>}
-            {payload.map((p, i) => (
-                <p key={i} style={{ color: p.color || p.fill }}>
-                    <span className="text-text-muted">{p.name}: </span>
-                    <span className="font-bold">{typeof p.value === 'number' ? p.value.toLocaleString() : p.value}</span>
-                </p>
-            ))}
-        </div>
-    )
-}
-
-
 function UnitIntegrationSection({ rows }) {
-    const [filter, setFilter] = useState('all') // all | Unit | Integration | failed
+    const [filter, setFilter] = useState('all')
     if (!rows) return null
 
     const filtered = rows.filter((r) => {
@@ -147,47 +159,13 @@ function UnitIntegrationSection({ rows }) {
         return r.category === filter
     })
 
-    const passed = rows.filter((r) => r.passed).length
-    const failed = rows.length - passed
-    const pie = [
-        { name: 'Passed', value: passed, color: COLOR_SUCCESS },
-        { name: 'Failed', value: failed, color: COLOR_DANGER },
-    ]
-
     return (
         <Card
+            id="unit-tests"
             title="Unit & Integration Tests"
             subtitle="Per-stage function tests and FastAPI endpoint integration checks run via pytest."
         >
-            <div className="grid grid-cols-1 lg:grid-cols-[260px_1fr] gap-8 items-start">
-                <div>
-                    <div className="h-56">
-                        <ResponsiveContainer>
-                            <PieChart>
-                                <Pie
-                                    data={pie}
-                                    dataKey="value"
-                                    nameKey="name"
-                                    innerRadius={50}
-                                    outerRadius={80}
-                                    paddingAngle={2}
-                                    stroke="none"
-                                >
-                                    {pie.map((entry) => (
-                                        <Cell key={entry.name} fill={entry.color} />
-                                    ))}
-                                </Pie>
-                                <Tooltip content={<ChartTooltip />} />
-                            </PieChart>
-                        </ResponsiveContainer>
-                    </div>
-                    <div className="mt-2 flex items-center justify-center gap-5 text-xs">
-                        <LegendSwatch color={COLOR_SUCCESS} label={`Passed · ${passed}`} />
-                        <LegendSwatch color={COLOR_DANGER} label={`Failed · ${failed}`} />
-                    </div>
-                </div>
-
-                <div>
+            <div>
                     <div className="flex items-center gap-2 mb-4">
                         {['all', 'Unit', 'Integration', 'failed'].map((f) => (
                             <button
@@ -203,12 +181,12 @@ function UnitIntegrationSection({ rows }) {
                         ))}
                     </div>
 
-                    <div className="overflow-x-auto">
-                        <table className="w-full text-sm">
-                            <thead>
-                                <tr className="border-b border-border/40">
-                                    <Th>ID</Th>
-                                    <Th>Category</Th>
+                <div className="overflow-x-auto">
+                    <table className="w-full text-sm">
+                        <thead>
+                            <tr className="border-b border-border/40">
+                                <Th>ID</Th>
+                                <Th>Category</Th>
                                     <Th>Scenario</Th>
                                     <Th>Expected → Actual</Th>
                                     <Th className="w-[60px]">ms</Th>
@@ -249,7 +227,6 @@ function UnitIntegrationSection({ rows }) {
                             </tbody>
                         </table>
                     </div>
-                </div>
             </div>
         </Card>
     )
@@ -271,47 +248,18 @@ function Td({ children, mono = false }) {
     )
 }
 
-function LegendSwatch({ color, label }) {
-    return (
-        <span className="inline-flex items-center gap-2 text-text-secondary">
-            <span className="inline-block w-3 h-3 rounded-sm" style={{ backgroundColor: color }} />
-            {label}
-        </span>
-    )
-}
 
 
 function ScopeSection({ scope }) {
     if (!scope) return null
-    const refusedPct = (scope.correctly_refused / scope.dataset_size) * 100
-    const pie = [
-        { name: 'Correctly Refused', value: scope.correctly_refused, color: COLOR_SUCCESS },
-        { name: 'Leaked (answered)', value: scope.leaked, color: COLOR_DANGER },
-    ]
 
     return (
         <Card
-            title="Scope Restriction (Off-Topic Refusal)"
-            subtitle={`${scope.dataset_size} off-topic prompts sent; the system must return the canonical refusal and not use retrieved context.`}
+            id="scope-restriction"
+            title="Off-Topic Refusal"
+            subtitle="Off-topic prompts sent; the system must return the canonical refusal and not use retrieved context."
         >
-            <div className="grid grid-cols-1 lg:grid-cols-[260px_1fr] gap-8 items-start">
-                <div>
-                    <div className="h-56">
-                        <ResponsiveContainer>
-                            <PieChart>
-                                <Pie data={pie} dataKey="value" nameKey="name" innerRadius={50} outerRadius={80} paddingAngle={2} stroke="none">
-                                    {pie.map((entry) => <Cell key={entry.name} fill={entry.color} />)}
-                                </Pie>
-                                <Tooltip content={<ChartTooltip />} />
-                            </PieChart>
-                        </ResponsiveContainer>
-                    </div>
-                    <div className="mt-2 text-center">
-                        <p className="text-3xl font-black text-primary">{refusedPct.toFixed(1)}%</p>
-                        <p className="text-[10px] font-bold text-text-muted uppercase tracking-[0.3em]">refusal accuracy</p>
-                    </div>
-                </div>
-
+            <div>
                 <div className="overflow-x-auto">
                     <table className="w-full text-sm">
                         <thead>

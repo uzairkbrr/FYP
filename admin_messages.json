@@ -25,5 +25,14 @@
     "read": false,
     "action": "",
     "created_at": "2026-04-21T09:00:26.527372+00:00"
+  },
+  {
+    "id": "d4ada49a36114e8e8c3cd812e159ec6b",
+    "email": "rohail@gmail.com",
+    "contact": "03123456789",
+    "message": "Hey, can I get admission in MSCS with 2.5 CGPA?",
+    "read": false,
+    "action": "whatsapp",
+    "created_at": "2026-04-21T17:48:08.794287+00:00"
   }
 ]
