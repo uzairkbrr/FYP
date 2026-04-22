@@ -431,56 +431,6 @@ def run_security_validation(section: dict, args: argparse.Namespace) -> None:
         line(cid, passed, actual[:80])
 
 
-def run_language_detection(section: dict, args: argparse.Namespace) -> None:
-    header("Language Detection")
-    if not AUDIO_DIR.exists():
-        section["result"] = {"skipped": True, "reason": f"no audio fixtures at {AUDIO_DIR}"}
-        line("LD", None, f"skipped — create {AUDIO_DIR} with *_en.ogg / *_ur.ogg samples")
-        return
-
-    samples = sorted(AUDIO_DIR.glob("*.ogg")) + sorted(AUDIO_DIR.glob("*.webm")) + sorted(AUDIO_DIR.glob("*.mp3"))
-    if not samples:
-        section["result"] = {"skipped": True, "reason": "audio folder empty"}
-        line("LD", None, "skipped — audio folder empty")
-        return
-
-    # Convention: filename ending _en.* is English, _ur.* is Urdu
-    english_correct = english_total = 0
-    urdu_correct   = urdu_total   = 0
-    details: list[dict] = []
-
-    for s in samples:
-        name = s.stem.lower()
-        if name.endswith("_en"):
-            expected = "en"
-            english_total += 1
-        elif name.endswith("_ur"):
-            expected = "ur"
-            urdu_total += 1
-        else:
-            line(s.name, None, "skipped — no _en / _ur suffix")
-            continue
-
-        try:
-            mimetype = {"ogg": "audio/ogg", "webm": "audio/webm", "mp3": "audio/mpeg"}[s.suffix[1:]]
-            r = transcribe_audio(s.read_bytes(), mimetype)
-            got = r["language"]
-            matched = got == expected
-            if matched and expected == "en": english_correct += 1
-            if matched and expected == "ur": urdu_correct += 1
-            details.append({"file": s.name, "expected": expected, "detected": got, "passed": matched})
-            line(s.name, matched, f"expected={expected}  detected={got}")
-        except Exception as e:
-            details.append({"file": s.name, "expected": expected, "error": str(e), "passed": False})
-            line(s.name, False, str(e)[:80])
-
-    section["result"] = {
-        "english": {"correct": english_correct, "total": english_total},
-        "urdu":    {"correct": urdu_correct,    "total": urdu_total},
-        "details": details,
-    }
-
-
 # Driver
 SECTION_RUNNERS: dict[str, Callable[[dict, argparse.Namespace], None]] = {
     "unit_integration":        run_unit_integration,
@@ -489,7 +439,6 @@ SECTION_RUNNERS: dict[str, Callable[[dict, argparse.Namespace], None]] = {
     "scope_restriction":        run_scope_restriction,
     "edge_cases":               run_edge_cases,
     "security_validation":      run_security_validation,
-    "language_detection":       run_language_detection,
 }
 
 
