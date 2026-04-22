@@ -13,7 +13,7 @@ _URDU_DIRECT = {"ur", "urdu"}
 
 def transcribe_audio(audio_bytes: bytes, mimetype: str = "audio/webm") -> dict:
     """
-    Transcribe audio with OpenAI Whisper.
+    Transcribe audio with Whisper.
 
     Pipeline:
       1. Auto-detect language.

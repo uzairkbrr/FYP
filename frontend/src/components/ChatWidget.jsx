@@ -81,7 +81,7 @@ export default function ChatWidget() {
     const [formEmail, setFormEmail] = useState('')
     const [formContact, setFormContact] = useState('')
     const [formMessage, setFormMessage] = useState('')
-    const [formStatus, setFormStatus] = useState('idle') // idle | sending | success | error
+    const [formStatus, setFormStatus] = useState('idle')
     const [formError, setFormError] = useState('')
 
     const {
@@ -223,7 +223,7 @@ export default function ChatWidget() {
 
     const hasText = input.trim().length > 0
 
-    // ── Floating trigger button ──
+    // Floating trigger button
     if (!isOpen) {
         return (
             <button
@@ -238,7 +238,7 @@ export default function ChatWidget() {
         )
     }
 
-    // ── Chat panel ──
+    // Chat panel
     return (
         <div
             className="fixed bottom-6 right-6 z-50 w-[460px] h-[680px] rounded-2xl bg-surface border border-border shadow-2xl flex flex-col overflow-hidden"
