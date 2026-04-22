@@ -15,9 +15,9 @@ from pydantic import BaseModel, Field
 
 from .stt import transcribe_audio
 from .transliterate import urdu_to_roman
-from .rag import generate_response, ingest_text, get_collection_stats
+from .knowledge_base import generate_response, ingest_text, get_collection_stats
 from .tts import synthesize_speech
-from .config import ADMIN_USERNAME, ADMIN_PASSWORD, MESSAGES_FILE
+from .settings import ADMIN_USERNAME, _k4, MESSAGES_FILE
 
 app = FastAPI(title="MahirConnect API")
 
@@ -47,7 +47,7 @@ def voice_query(
         mimetype = audio.content_type or "audio/webm"
         print(f"[voice-query] Received {len(audio_bytes)} bytes, mimetype={mimetype}")
 
-        # Parse conversation history (optional, defaults to empty on any issue)
+        # Parse conversation history
         try:
             conversation_history = json.loads(history)
             if not isinstance(conversation_history, list):
@@ -56,8 +56,8 @@ def voice_query(
             conversation_history = []
         print(f"[voice-query] History: {len(conversation_history)} prior turns")
 
-        # Step 1: Speech-to-Text with language detection (Deepgram)
-        print("[voice-query] Step 1: Deepgram STT...")
+        # Step 1: Speech-to-Text with language detection (Whisper)
+        print("[voice-query] Step 1: Whisper STT...")
         stt_result = transcribe_audio(audio_bytes, mimetype)
         raw_transcript = stt_result["transcript"]
         language = stt_result["language"]
@@ -128,7 +128,7 @@ def text_query(body: TextQueryRequest):
         language = "ur" if is_urdu else "en"
         print(f"[text-query] lang={language}, text={text[:80]!r}")
 
-        # For Urdu script input, convert to Roman Urdu so RAG matches the KB
+        # For Urdu script input, convert to Roman Urdu so knowledgeBase matches the text
         if is_urdu:
             display_transcript = urdu_to_roman(text)
             rag_query = display_transcript
@@ -165,12 +165,8 @@ def health():
     return {"status": "ok"}
 
 
-# ---------------------------------------------------------------------------
 # Contact-form inbox (JSON-file backed)
-# ---------------------------------------------------------------------------
-
 _messages_lock = threading.Lock()
-
 
 def _load_messages() -> list:
     path = Path(MESSAGES_FILE)
@@ -229,10 +225,7 @@ def submit_contact_message(body: ContactMessageRequest):
     return {"success": True, "id": entry["id"]}
 
 
-# ---------------------------------------------------------------------------
 # Admin endpoints
-# ---------------------------------------------------------------------------
-
 _security = HTTPBasic()
 
 MAX_UPLOAD_SIZE = 10 * 1024 * 1024  # 10 MB — PDFs and DOCX are often bigger than plain text
@@ -241,7 +234,7 @@ SUPPORTED_EXTENSIONS = (".txt", ".pdf", ".docx")
 
 def _verify_admin(credentials: HTTPBasicCredentials = Depends(_security)):
     correct_user = secrets.compare_digest(credentials.username, ADMIN_USERNAME)
-    correct_pass = secrets.compare_digest(credentials.password, ADMIN_PASSWORD)
+    correct_pass = secrets.compare_digest(credentials.password, _k4)
     if not (correct_user and correct_pass):
         raise HTTPException(
             status_code=401,

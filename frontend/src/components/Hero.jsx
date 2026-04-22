@@ -24,7 +24,7 @@ export default function Hero({ onStartQuery }) {
                     any time of day.
                 </p>
 
-                {/* CTA — scrolls to the voice section */}
+                {/* CTA: scrolls to the voice section */}
                 <div className="flex items-center justify-center">
                     <button
                         onClick={onStartQuery}

@@ -4,38 +4,31 @@ import openai
 from langchain_openai import OpenAIEmbeddings
 from langchain_chroma import Chroma
 from langchain_text_splitters import RecursiveCharacterTextSplitter
-from .config import OPENAI_API_KEY, CHROMA_PERSIST_DIR, CHROMA_COLLECTION, RAG_TOP_K, GPT_MODEL
+from .settings import (
+    _k1,
+    model_text,
+    _s1, _s2, _s3,
+    CHROMA_PERSIST_DIR, CHROMA_COLLECTION, RAG_TOP_K,
+)
 
-_client = openai.OpenAI(api_key=OPENAI_API_KEY)
+_client = openai.OpenAI(api_key=_k1)
 
 # Initialize ChromaDB once at module load
-_embeddings = OpenAIEmbeddings(api_key=OPENAI_API_KEY)
+_embeddings = OpenAIEmbeddings(api_key=_k1)
 _vectorstore = Chroma(
     embedding_function=_embeddings,
     persist_directory=CHROMA_PERSIST_DIR,
     collection_name=CHROMA_COLLECTION,
 )
 
-
-# ---------------------------------------------------------------------------
 # Ingestion
-# ---------------------------------------------------------------------------
-
 def _generate_description(text: str) -> str:
-    """Call GPT-4o-mini once to generate a short description of the text."""
+    """Generate a short description of the text (uses system prompt _s1)."""
     try:
         resp = _client.chat.completions.create(
-            model=GPT_MODEL,
+            model=model_text,
             messages=[
-                {
-                    "role": "system",
-                    "content": (
-                        "You are a helpful assistant. Read the following text and write a "
-                        "single short sentence (max 12 words) describing what topics it covers. "
-                        "Be specific. Do not start with 'This file' or 'This document'. "
-                        "Just state the topics directly."
-                    ),
-                },
+                {"role": "system", "content": _s1},
                 {"role": "user", "content": text[:3000]},
             ],
             temperature=0.0,
@@ -54,7 +47,6 @@ def ingest_text(text: str, source_label: str) -> dict:
 
     Returns: {"chunks_added": int, "source": source_label, "description": str}
     """
-    # Generate a one-liner description of the file (once, not per chunk)
     description = _generate_description(text)
 
     splitter = RecursiveCharacterTextSplitter(
@@ -95,26 +87,18 @@ def get_collection_stats() -> dict:
     ]
     return {"total_chunks": total, "sources": sources}
 
-
-# ---------------------------------------------------------------------------
-# RAG query (unchanged)
-# ---------------------------------------------------------------------------
-
+# RAG query
 def generate_response(query: str, language: str, conversation_history: list = []) -> dict:
     """
-    Retrieve context from ChromaDB and generate a response via GPT-4o-mini.
+    Retrieve context from ChromaDB and generate a response via the text model.
 
     Args:
         query: User query (Roman Urdu if Urdu, English if English)
         language: "en" or "ur"
         conversation_history: list of {"role": "user"|"assistant", "content": str}
-            representing prior turns in this conversation. Sliced to last 6 items
-            to keep token usage bounded. Empty list = stateless behavior (no regression).
 
     Returns:
         {"response_text": str, "tts_text": str}
-        - response_text: display text (Roman Urdu or English)
-        - tts_text: text for TTS (Arabic Urdu or English)
     """
     retrieved = _vectorstore.similarity_search(query, k=RAG_TOP_K)
 
@@ -134,47 +118,10 @@ def generate_response(query: str, language: str, conversation_history: list = []
 
 
 def _generate_urdu_response(query: str, context: str, history: list = []) -> dict:
-    system_prompt = f"""You are Mahir, a warm and helpful voice assistant for FAST-NUCES Peshawar's front desk.
-
-Answer the student's question using the provided context. Follow these rules strictly:
-
-1. SCOPE RESTRICTION. You are exclusively an assistant for FAST-NUCES Peshawar. Only answer questions directly related to FAST-NUCES Peshawar such as admissions, fees, scholarships, programs, academic policies, campus facilities, faculty, and hostel. If the user asks about ANYTHING else, respond with exactly:
-
-   English: "I don't have information about that. Feel free to ask anything related to FAST Peshawar!"
-   Urdu (Roman): "Mujhe is bare mein maloomat nahi hai. Aap FAST Peshawar se related koi bhi sawal pooch sakte hain!"
-
-   Do not attempt a partial answer. Do not use retrieved context for off-topic queries. Return only the above message.
-
-2. Be warm, and friendly like a helpful receptionist, not a database lookup.
-
-3. If the direct answer is negative (not available, not offered, not applicable), look for and include any related helpful information from the context. Never end a response on a negative note alone.
-
-4. Only mention a website link, email, or phone number if ALL of these are true:
-   (a) it is directly present in the retrieved context,
-   (b) it is specifically relevant to what the student asked, AND
-   (c) the student would genuinely benefit from it (e.g. to complete an application, download a form, check a schedule).
-   Do NOT append a generic website reference at the end of every response just to be helpful — it feels robotic and repetitive.
-
-5. Keep your response to 1-2 sentences unless the question requires more. Be helpful but concise.
-
-6. Answer priority when information is limited:
-   (a) If the context has ANY relevant information, provide it. Even partial information is better than redirecting to staff.
-   (b) Only direct the student to administrative staff if the query is personal, case-specific, requires a human decision, or involves documents/approvals (e.g. fee concession due to financial situation, grade appeal, admission status errors, special exemptions).
-
-7. Write all numbers WITHOUT commas (e.g: 11000 not 11,000, 167500 not 167,500, 200500 not 200,500).
-
-8. MARKDOWN LINK FORMATTING. When including a URL, always format it as a proper markdown link with a clean descriptive label — never write the URL bare and never use phrases like "is link", "here", or "click here" as the label. The label must describe the destination meaningfully.
-   - WRONG: [is link](https://pwr.nu.edu.pk/hostel)
-   - WRONG: [here](https://pwr.nu.edu.pk/hostel)
-   - WRONG: https://pwr.nu.edu.pk/hostel
-   - RIGHT: [FAST-NUCES Peshawar Hostel Information](https://pwr.nu.edu.pk/hostel)
-   - RIGHT: [Fee Structure Details](https://nu.edu.pk/Admissions/FeeStructure)
-
-Context:
-{context}"""
+    system_prompt = _s2.format(context=context)
 
     resp = _client.chat.completions.create(
-        model=GPT_MODEL,
+        model=model_text,
         messages=[
             {"role": "system", "content": system_prompt},
             *history,
@@ -196,48 +143,10 @@ Context:
 
 
 def _generate_english_response(query: str, context: str, history: list = []) -> dict:
-    system_prompt = f"""You are Mahir, a warm and helpful voice assistant for FAST-NUCES Peshawar's front desk.
-
-Answer the student's question using the provided context. Follow these rules strictly:
-
-1. SCOPE RESTRICTION. You are exclusively an assistant for FAST-NUCES Peshawar. Only answer questions directly related to FAST-NUCES Peshawar such as admissions, fees, scholarships, programs, academic policies, campus facilities, faculty, and hostel. If the user asks about ANYTHING else, respond with exactly:
-
-   English: "I don't have information about that. Feel free to ask anything related to FAST Peshawar!"
-   Urdu (Roman): "Mujhe is bare mein maloomat nahi hai. Aap FAST Peshawar se related koi bhi sawal pooch sakte hain!"
-
-   Do not attempt a partial answer. Do not use retrieved context for off-topic queries. Return only the above message.
-
-2. Be warm, and friendly like a helpful receptionist, not a database lookup.
-
-
-3. If the direct answer is negative (not available, not offered, not applicable), look for and include any related helpful information from the context. Never end a response on a negative note alone.
-
-4. Only mention a website link, email, or phone number if ALL of these are true:
-   (a) it is directly present in the retrieved context,
-   (b) it is specifically relevant to what the student asked, AND
-   (c) the student would genuinely benefit from it (e.g. to complete an application, download a form, check a schedule).
-   Do NOT append a generic website reference at the end of every response just to be helpful — it feels robotic and repetitive.
-
-5. Keep your response to 1-2 sentences unless the question requires more. Be helpful but concise.
-
-6. Answer priority when information is limited:
-   (a) If the context has ANY relevant information, provide it. Even partial information is better than redirecting to staff.
-   (b) Only direct the student to administrative staff if the query is personal, case-specific, requires a human decision, or involves documents/approvals (e.g. fee concession due to financial situation, grade appeal, admission status errors, special exemptions).
-
-7. Write all numbers WITHOUT commas (e.g: 11000 not 11,000, 167500 not 167,500, 200500 not 200,500).
-
-8. MARKDOWN LINK FORMATTING. When including a URL, always format it as a proper markdown link with a clean descriptive label — never write the URL bare and never use phrases like "is link", "here", or "click here" as the label. The label must describe the destination meaningfully.
-   - WRONG: [is link](https://pwr.nu.edu.pk/hostel)
-   - WRONG: [here](https://pwr.nu.edu.pk/hostel)
-   - WRONG: https://pwr.nu.edu.pk/hostel
-   - RIGHT: [FAST-NUCES Peshawar Hostel Information](https://pwr.nu.edu.pk/hostel)
-   - RIGHT: [Fee Structure Details](https://nu.edu.pk/Admissions/FeeStructure)
-
-Context:
-{context}"""
+    system_prompt = _s3.format(context=context)
 
     resp = _client.chat.completions.create(
-        model=GPT_MODEL,
+        model=model_text,
         messages=[
             {"role": "system", "content": system_prompt},
             *history,

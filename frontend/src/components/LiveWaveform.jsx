@@ -1,29 +1,5 @@
 import React, { useEffect, useRef } from 'react'
 
-/**
- * Circular live audio waveform — a ring of bars radiating outward from
- * the center, driven by a Web Audio AnalyserNode. Designed to be layered
- * around a circular mic button.
- *
- * Usage:
- *   <div className="relative">
- *     <LiveWaveform analyserRef={analyserRef} size={192} innerRadius={72} />
- *     <button className="w-32 h-32 rounded-full">...</button>
- *   </div>
- *
- * The canvas is absolutely positioned and centered; the host element
- * should be `position: relative` with a button inside it. Pointer events
- * are disabled on the canvas so clicks pass through to the mic button.
- *
- * Props:
- *   size          — overall canvas dimension (square). Should be
- *                   2 * (innerRadius + maxBarLength + a little padding).
- *   innerRadius   — distance from center to the inner end of each bar.
- *                   Set to (button_diameter / 2) + small gap.
- *   maxBarLength  — maximum outward length added to a bar at full amplitude.
- *   barCount      — number of bars around the circle.
- *   color         — fill color (CSS). Defaults to --primary.
- */
 export default function LiveWaveform({
     analyserRef,
     size = 192,
@@ -45,7 +21,7 @@ export default function LiveWaveform({
         const ctx = canvas.getContext('2d')
         ctx.scale(dpr, dpr)
 
-        // One smoothed amplitude per bar — softens the motion so it doesn't jitter
+        // One smoothed amplitude per bar softens the motion so it doesn't jitter
         const smoothed = new Array(barCount).fill(0)
         let rafId = 0
 
@@ -70,7 +46,7 @@ export default function LiveWaveform({
                 const data = new Uint8Array(analyser.frequencyBinCount)
                 analyser.getByteFrequencyData(data)
 
-                // Focus on voice-range frequencies — they live in the low-to-mid bins
+                // Focus on voice-range frequencies they live in the low-to-mid bins
                 const usableBins = Math.floor(data.length * 0.65)
 
                 for (let i = 0; i < barCount; i++) {

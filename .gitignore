@@ -2,3 +2,4 @@
 .venv/
 .claude/
 chroma_db/
+backend/settings.py
