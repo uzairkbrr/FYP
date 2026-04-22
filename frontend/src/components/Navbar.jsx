@@ -11,7 +11,6 @@ export default function Navbar() {
                     </span>
                 </div>
 
-                {/* Navigation Links */}
                 <div className="flex items-center gap-8 ml-auto">
                     <div className="hidden md:flex items-center gap-8">
                         <a href="#voice-section" className="text-sm font-bold text-white hover:text-primary transition-colors">Demo</a>

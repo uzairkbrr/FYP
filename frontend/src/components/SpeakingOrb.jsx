@@ -1,23 +1,5 @@
 import React from 'react'
 
-/**
- * Mahir's visual persona — a glowing, breathing orb.
- *
- * Four layered elements make it feel organic and "alive":
- *   1. Outer glow     — large, blurred, pulses with the `state`
- *   2. Body           — radial gradient sphere with inner highlight
- *   3. Specular       — off-center bright spot to give it a 3D feel
- *   4. Aurora         — slow-rotating conic gradient, overlay-blended,
- *                       for subtle motion inside the sphere
- *
- * Props:
- *   size          — pixel size (width & height)
- *   state         — 'idle' | 'thinking' | 'speaking'
- *                   Controls the outer-glow animation speed/amplitude.
- *   onClick       — if provided, renders as a clickable button
- *   showMicIcon   — overlay a centered mic icon (used on the hero CTA)
- *   ariaLabel     — accessibility label when interactive
- */
 export default function SpeakingOrb({
     size = 140,
     state = 'idle',
@@ -47,7 +29,7 @@ export default function SpeakingOrb({
                 background: 'transparent',
             }}
         >
-            {/* 1. Outer glow — the breathing aura */}
+            {/* 1. Outer glow: the breathing aura */}
             <div
                 className={`absolute inset-0 rounded-full ${glowAnim}`}
                 style={{
@@ -57,7 +39,7 @@ export default function SpeakingOrb({
                 }}
             />
 
-            {/* 2. Body — the orb itself */}
+            {/* 2. Body: the orb itself */}
             <div
                 className="absolute rounded-full"
                 style={{

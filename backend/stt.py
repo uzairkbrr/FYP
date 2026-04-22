@@ -1,50 +1,30 @@
 import os
 import tempfile
-import httpx
 from openai import OpenAI
-from .config import DEEPGRAM_API_KEY, OPENAI_API_KEY
+from .settings import _k1, model_stt
 
-
-# DEEPGRAM IMPLEMENTATION — kept for reference, replaced by Whisper below
-# def transcribe_audio(audio_bytes: bytes, mimetype: str = "audio/webm") -> dict:
-#     """
-#     Transcribe audio using Deepgram Nova-2 with automatic language detection.
-#
-#     Returns: {"transcript": str, "language": "en" | "ur"}
-#     """
-#     resp = httpx.post(
-#         "https://api.deepgram.com/v1/listen",
-#         params={
-#             "model": "nova-3",
-#             "smart_format": "true",
-#             "detect_language": "true",
-#         },
-#         headers={
-#             "Authorization": f"Token {DEEPGRAM_API_KEY}",
-#             "Content-Type": mimetype,
-#         },
-#         content=audio_bytes,
-#         timeout=30.0,
-#     )
-#     resp.raise_for_status()
-#     data = resp.json()
-#
-#     channel = data["results"]["channels"][0]
-#     transcript = channel["alternatives"][0]["transcript"]
-#     detected_lang = channel.get("detected_language", "en")
-#
-#     lang = "ur" if detected_lang.startswith("ur") or detected_lang.startswith("hi") else "en"
-#
-#     return {"transcript": transcript, "language": lang}
+# Whisper's auto-detect often labels spoken Urdu as Hindi (hi) or Punjabi (pa)
+# because they share phonetics. When that happens, the transcript comes back in
+# Devanagari/Gurmukhi with different word choices, which hurts.
+# We re-run Whisper with language forced to Urdu for these cases.
+_HINDI_FAMILY_MISLABEL = {"hi", "pa", "hindi", "punjabi"}
+_URDU_DIRECT = {"ur", "urdu"}
 
 
 def transcribe_audio(audio_bytes: bytes, mimetype: str = "audio/webm") -> dict:
     """
-    Transcribe audio using OpenAI Whisper large-v3 with automatic language detection.
+    Transcribe audio with Whisper.
+
+    Pipeline:
+      1. Auto-detect language.
+      2. If Whisper mislabels Urdu as Hindi/Punjabi, re-run with language='ur'
+         forced so we get Arabic script and consistent vocabulary.
+      3. Collapse every non-English result to "ur" so the rest of the pipeline
+         always sees just {"en", "ur"}.
 
     Returns: {"transcript": str, "language": "en" | "ur"}
     """
-    client = OpenAI(api_key=OPENAI_API_KEY)
+    client = OpenAI(api_key=_k1)
 
     suffix = ".ogg" if "ogg" in mimetype else ".webm" if "webm" in mimetype else ".mp3"
     with tempfile.NamedTemporaryFile(suffix=suffix, delete=False) as tmp:
@@ -52,15 +32,29 @@ def transcribe_audio(audio_bytes: bytes, mimetype: str = "audio/webm") -> dict:
         tmp_path = tmp.name
 
     try:
+        # Pass 1: auto-detect
         with open(tmp_path, "rb") as f:
             result = client.audio.transcriptions.create(
-                model="whisper-1",
+                model=model_stt,
                 file=f,
                 response_format="verbose_json",
             )
         transcript = result.text.strip()
-        detected_language = getattr(result, "language", "en")
-        language = "ur" if detected_language in ("ur", "hi", "pa", "urdu", "hindi", "punjabi") else "en"
+        detected = (getattr(result, "language", "en") or "en").lower()
+
+        # Pass 2: if detection was Hindi/Punjabi but it's actually Urdu, re-run.
+        if detected in _HINDI_FAMILY_MISLABEL:
+            with open(tmp_path, "rb") as f:
+                result = client.audio.transcriptions.create(
+                    model=model_stt,
+                    file=f,
+                    language="ur",
+                    response_format="verbose_json",
+                )
+            transcript = result.text.strip()
+            detected = "ur"
+
+        language = "ur" if detected in _URDU_DIRECT else "en"
         return {"transcript": transcript, "language": language}
     finally:
         os.unlink(tmp_path)

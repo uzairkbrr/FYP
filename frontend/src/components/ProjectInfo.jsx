@@ -9,7 +9,6 @@ export default function ProjectInfo() {
                 </div>
 
                 <div className="grid md:grid-cols-2 gap-8">
-                    {/* Problem Statement */}
                     <div className="group bg-surface rounded-xl p-6 border border-border/60 hover:shadow-2xl transition-all duration-500 relative overflow-hidden">
                         <div className="flex items-center gap-6 mb-10">
                             <div className="w-16 h-16 rounded-lg bg-red-50 border border-red-100 flex items-center justify-center shrink-0">
@@ -26,7 +25,6 @@ export default function ProjectInfo() {
                         </p>
                     </div>
 
-                    {/* Proposed Solution */}
                     <div className="group bg-surface rounded-xl p-6 border border-border/60 hover:shadow-2xl transition-all duration-500 relative overflow-hidden">
                         <div className="flex items-center gap-6 mb-10">
                             <div className="w-16 h-16 rounded-lg bg-green-50 border border-green-100 flex items-center justify-center shrink-0">
@@ -37,7 +35,7 @@ export default function ProjectInfo() {
                             <h3 className="text-2xl font-black text-text-primary tracking-tight font-serif uppercase group-hover:text-success transition-colors">The Solution</h3>
                         </div>
                         <p className="text-text-secondary leading-relaxed font-medium text-base">
-                            <strong>MahirConnect</strong> scaleable Urdu-based voice agent for
+                            <strong>MahirConnect</strong> Urdu-based voice agent for
                             seamless information retrieval. It utilizes speech-to-text
                             processing and semantic search to provide context-aware responses instantly.
                         </p>

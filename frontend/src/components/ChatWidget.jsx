@@ -81,7 +81,7 @@ export default function ChatWidget() {
     const [formEmail, setFormEmail] = useState('')
     const [formContact, setFormContact] = useState('')
     const [formMessage, setFormMessage] = useState('')
-    const [formStatus, setFormStatus] = useState('idle') // idle | sending | success | error
+    const [formStatus, setFormStatus] = useState('idle')
     const [formError, setFormError] = useState('')
 
     const {
@@ -223,7 +223,7 @@ export default function ChatWidget() {
 
     const hasText = input.trim().length > 0
 
-    // ── Floating trigger button ──
+    // Floating trigger button
     if (!isOpen) {
         return (
             <button
@@ -238,7 +238,7 @@ export default function ChatWidget() {
         )
     }
 
-    // ── Chat panel ──
+    // Chat panel
     return (
         <div
             className="fixed bottom-6 right-6 z-50 w-[460px] h-[680px] rounded-2xl bg-surface border border-border shadow-2xl flex flex-col overflow-hidden"
@@ -286,7 +286,6 @@ export default function ChatWidget() {
                 </div>
             </div>
 
-            {/* Custom Message form — replaces the messages/input area while active */}
             {showContactForm ? (
                 <div className="flex-1 overflow-y-auto px-5 py-5 scrollbar-thin">
                     <div className="mb-4">
@@ -361,7 +360,7 @@ export default function ChatWidget() {
                 </div>
             ) : (
                 <>
-            {/* Messages */}
+
             <div className="flex-1 overflow-y-auto p-4 space-y-4 scrollbar-thin">
                 {messages.length === 0 && status === 'idle' && (
                     <div className="flex flex-col items-center justify-center h-full select-none text-center px-6">
@@ -437,7 +436,6 @@ export default function ChatWidget() {
                     </div>
                 )}
 
-                {/* Recording indicator — the live visualization now sits around the footer mic */}
                 {isListening && (
                     <div className="flex justify-center">
                         <div className="px-4 py-2 rounded-full bg-primary/10 animate-pulse">
@@ -458,7 +456,7 @@ export default function ChatWidget() {
                 </div>
             )}
 
-            {/* Suggestion rows — shown just above the input while the chat is empty */}
+            {/* Suggestion rows: shown just above the input while the chat is empty */}
             {messages.length === 0 && !isProcessing && (
                 <div className="px-3 pt-2 pb-1 bg-surface shrink-0 space-y-1.5">
                     {SUGGESTIONS.map((query) => (
@@ -487,7 +485,7 @@ export default function ChatWidget() {
                 </div>
             )}
 
-            {/* Footer: text input + send/mic */}
+            {/* Footer of the chat widget: text input + send/mic */}
             <div className="px-3 py-3 border-t border-border bg-surface shrink-0 flex items-center gap-2">
                 <input
                     ref={inputRef}

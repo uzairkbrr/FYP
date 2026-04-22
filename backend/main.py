@@ -15,9 +15,9 @@ from pydantic import BaseModel, Field
 
 from .stt import transcribe_audio
 from .transliterate import urdu_to_roman
-from .rag import generate_response, ingest_text, get_collection_stats
+from .knowledge_base import generate_response, ingest_text, get_collection_stats
 from .tts import synthesize_speech
-from .config import ADMIN_USERNAME, ADMIN_PASSWORD, MESSAGES_FILE
+from .settings import ADMIN_USERNAME, _k4, MESSAGES_FILE
 
 app = FastAPI(title="MahirConnect API")
 
@@ -41,27 +41,27 @@ def voice_query(
     audio: UploadFile = File(...),
     history: str = Form(default="[]"),
 ):
-    """Process a voice query: STT -> RAG -> TTS pipeline."""
+    """Process a voice query: (STT -> Generate Response -> TTS) pipeline."""
     try:
         audio_bytes = audio.file.read()
         mimetype = audio.content_type or "audio/webm"
         print(f"[voice-query] Received {len(audio_bytes)} bytes, mimetype={mimetype}")
 
-        # Parse conversation history (optional, defaults to empty on any issue)
+        # Parse conversation history
         try:
             conversation_history = json.loads(history)
             if not isinstance(conversation_history, list):
                 conversation_history = []
         except Exception:
             conversation_history = []
-        print(f"[voice-query] History: {len(conversation_history)} prior turns")
+        print(f"History: {len(conversation_history)} prior turns")
 
-        # Step 1: Speech-to-Text with language detection (Deepgram)
-        print("[voice-query] Step 1: Deepgram STT...")
+        # Step 1: Speech-to-Text with language detection (Whisper)
+        print("Step 1: Whisper STT...")
         stt_result = transcribe_audio(audio_bytes, mimetype)
         raw_transcript = stt_result["transcript"]
         language = stt_result["language"]
-        print(f"[voice-query] STT result: lang={language}, transcript={raw_transcript[:80]!r}")
+        print(f"STT result: lang={language}, transcript={raw_transcript[:80]!r}")
 
         if not raw_transcript.strip():
             raise HTTPException(
@@ -71,24 +71,24 @@ def voice_query(
 
         # Step 2: Language handling
         if language == "ur":
-            print("[voice-query] Step 2: Urdu detected, converting to Roman Urdu...")
+            print("Step 2: Urdu detected, converting to Roman Urdu...")
             display_transcript = urdu_to_roman(raw_transcript)
             rag_query = display_transcript
         else:
-            print("[voice-query] Step 2: English detected, using transcript as-is")
+            print("Step 2: English detected, using transcript as-is")
             display_transcript = raw_transcript
             rag_query = raw_transcript
         print(f"[voice-query] Query for RAG: {rag_query[:80]!r}")
 
-        # Step 3: RAG retrieval + response generation
-        print("[voice-query] Step 3: RAG generation...")
+        # Step 3:  Retrieval from knowledge Base + response generation
+        print("Step 3: RAG generation...")
         rag_result = generate_response(rag_query, language, conversation_history)
-        print(f"[voice-query] RAG response: {rag_result['response_text'][:80]!r}")
+        print(f"Response: {rag_result['response_text'][:80]!r}")
 
-        # Step 4: Text-to-Speech (ElevenLabs)
-        print(f"[voice-query] Step 4: ElevenLabs TTS ({len(rag_result['tts_text'])} chars)...")
+        # Step 4: Text-to-Speech
+        print(f"Step 4: TTS ({len(rag_result['tts_text'])} chars)...")
         audio_url = synthesize_speech(rag_result["tts_text"])
-        print(f"[voice-query] TTS done, audio_url length={len(audio_url)}")
+        print(f"TTS done, audio_url length={len(audio_url)}")
 
         return VoiceQueryResponse(
             transcript=display_transcript,
@@ -100,13 +100,13 @@ def voice_query(
         raise
     except httpx.HTTPStatusError as e:
         body = e.response.text[:500]
-        print(f"[voice-query] HTTP ERROR {e.response.status_code} from {e.request.url}: {body}")
+        print(f"HTTP ERROR {e.response.status_code} from {e.request.url}: {body}")
         raise HTTPException(
             status_code=502,
             detail=f"External API error ({e.response.status_code}): {body}",
         )
     except Exception as e:
-        print(f"[voice-query] UNEXPECTED ERROR: {traceback.format_exc()}")
+        print(f"UNEXPECTED ERROR: {traceback.format_exc()}")
         raise HTTPException(status_code=500, detail=f"Processing error: {str(e)}")
 
 
@@ -128,7 +128,7 @@ def text_query(body: TextQueryRequest):
         language = "ur" if is_urdu else "en"
         print(f"[text-query] lang={language}, text={text[:80]!r}")
 
-        # For Urdu script input, convert to Roman Urdu so RAG matches the KB
+        # For Urdu script input, convert to Roman Urdu so knowledgeBase matches the text
         if is_urdu:
             display_transcript = urdu_to_roman(text)
             rag_query = display_transcript
@@ -165,12 +165,8 @@ def health():
     return {"status": "ok"}
 
 
-# ---------------------------------------------------------------------------
 # Contact-form inbox (JSON-file backed)
-# ---------------------------------------------------------------------------
-
 _messages_lock = threading.Lock()
-
 
 def _load_messages() -> list:
     path = Path(MESSAGES_FILE)
@@ -229,10 +225,7 @@ def submit_contact_message(body: ContactMessageRequest):
     return {"success": True, "id": entry["id"]}
 
 
-# ---------------------------------------------------------------------------
 # Admin endpoints
-# ---------------------------------------------------------------------------
-
 _security = HTTPBasic()
 
 MAX_UPLOAD_SIZE = 10 * 1024 * 1024  # 10 MB — PDFs and DOCX are often bigger than plain text
@@ -241,7 +234,7 @@ SUPPORTED_EXTENSIONS = (".txt", ".pdf", ".docx")
 
 def _verify_admin(credentials: HTTPBasicCredentials = Depends(_security)):
     correct_user = secrets.compare_digest(credentials.username, ADMIN_USERNAME)
-    correct_pass = secrets.compare_digest(credentials.password, ADMIN_PASSWORD)
+    correct_pass = secrets.compare_digest(credentials.password, _k4)
     if not (correct_user and correct_pass):
         raise HTTPException(
             status_code=401,
