@@ -1,0 +1,1010 @@
+===== PAGE 1 =====
+Mahir Connect
+Advanced Elucidation Support in Local Language
+Session 2022–2026
+Supervised by
+Muhammad Umer Haroon
+Co-supervised by
+Shahzeb Khan
+Department of Computer Science
+National University of Computer and Emerging Sciences
+Peshawar, Pakistan
+
+===== PAGE 2 =====
+Student’s Declaration
+We hereby declare that the thesis submitted is our own, original work, completed indepen-
+dently without any unauthorized assistance. Only the sources and resources explicitly cited
+have been utilized. All excerpts, whether quoted directly or paraphrased, have been properly
+acknowledged. If generative AI tools were used, we have clearly indicated the product name,
+manufacturer, software version, and the specific purpose (e.g., language enhancement, system-
+atic research). We take full responsibility for the selection, application, and interpretation of
+any AI-generated content incorporated into this work. A list of prompts along with correspond-
+ing page numbers where they are used is included in the appendix.
+Uzair Ahmad Signature:
+Arsalan Mateen Signature:
+Muhammad Sohaib Signature:
+Verified by Plagiarism Cell Officer
+Dated:
+i
+
+===== PAGE 3 =====
+Certificate of Approval
+The Department of Computer Science, National University of Computer and Emerging Sci-
+ences, accepts this thesis titledMahir on Call - Advanced Elucidation Support in Local Lan-
+guage, submitted by Uzair Ahmad, Arsalan Mateen, and Muhammad Sohaib, in its current
+form, as fulfilling the dissertation requirements for the award of the Bachelor of Science degree
+in Computer Science.
+Muhammad Umer Haroon
+FYP Supervisor
+National University of Computer and Emerging Sciences, Peshawar
+Riaz Nawab
+FYP Coordinator
+National University of Computer and Emerging Sciences, Peshawar
+Dr. Qasim Jaan
+Head of Department, Department of Computer Science
+National University of Computer and Emerging Sciences, Peshawar
+ii
+
+===== PAGE 4 =====
+Acknowledgment
+We express our deepest gratitude to our supervisor,Muhammad Umer Haroon, Lecturer in
+the Department of Computer Science, FAST-NUCES Peshawar, for his continuous guidance,
+intellectual encouragement, and constructive feedback throughout this project. His clarity of
+vision and technical expertise shaped the direction of this work from its earliest stages.
+We are sincerely thankful to our co-supervisor,Shahzeb Khan, for his timely advice, technical
+insight, and the motivation he provided during the more demanding phases of development. His
+practical perspective helped us bridge the gap between research concepts and working software.
+We also extend our appreciation to the administration and front-desk staff ofFAST-NUCES
+Peshawarfor their cooperation in helping us understand real operational challenges, provid-
+ing domain knowledge that directly informed the system’s design, and allowing us to test the
+application in a realistic university setting.
+Finally, we are deeply grateful to our families and friends for their unwavering moral support,
+patience, and encouragement throughout this journey.
+Uzair Ahmad
+Arsalan Mateen
+Muhammad Sohaib
+iii
+
+===== PAGE 5 =====
+Abstract
+University admission offices in Pakistan face an acute operational challenge during annual
+enrollment seasons, when hundreds of voice and digital queries arrive simultaneously from
+prospective students and their families, the vast majority of whom communicate in Urdu rather
+than English. This report presentsMahir Connect: Advanced Elucidation Support in Local
+Language, a real-time Urdu-language voice AI web application developed for the front desk
+of FAST-NUCES Peshawar. The system enables any visitor to speak a query in Urdu, receive
+a spoken answer synthesised from a curated domain-specific knowledge base, and view a si-
+multaneous text transcript. The architecture integrates OpenAI Whisper for automatic speech
+recognition [1], GPT-4o-mini with Retrieval-Augmented Generation for knowledge-grounded
+response generation [2], and a neural text-to-speech engine for natural Urdu audio output [3, 4].
+A category-structured ChromaDB vector store [5] organises institution-specific information
+into eleven thematic domains, and a password-protected administration panel permits autho-
+rised staff to expand the knowledge base without developer involvement. Evaluation demon-
+strates an average end-to-end pipeline latency of approximately 4.8 seconds, with accurate re-
+sponses to all in-scope evaluation queries and appropriate fallback behaviour for out-of-scope
+queries. The system substantially reduces the volume of repetitive queries handled by human
+staff while improving accessibility for Urdu-speaking applicants who are currently excluded
+from English-first digital information channels.
+iv
+
+===== PAGE 6 =====
+Executive Summary
+Mahir Connect: Advanced Elucidation Support in Local Languageis a Final Year Project de-
+veloped by students of the Department of Computer Science, FAST-NUCES Peshawar, for the
+academic session 2022–2026. The project addresses a critical operational bottleneck experi-
+enced by university admission offices: the inability to handle the volume of simultaneous voice
+and digital queries that arrive during admission seasons in a timely, consistent, and language-
+accessible manner.
+The problem extends beyond institutional inconvenience. In Pakistan, 42 percent of adults
+cannot read in any language [6]. That is over 100 million people, locked out of banking,
+healthcare, education, and government services, simply because the digital world was built for
+text. University front desks face the same barrier. Applicants and parents struggle to access
+basic institutional information that is buried in English portals and long queues at administra-
+tive offices [7]. For a first-generation university aspirant whose family has invested significant
+resources in pursuing higher education, the inability to quickly determiningA eligibility, dead-
+lines, or payment procedures is not a minor inconvenience; it is a structural obstacle that can
+result in a missed opportunity and a foreclosed future. Mahir Connect addresses this gap by
+delivering institutional information through the most natural interface available to every human
+being,The spoken language - in the language most widely spoken in Pakistan.
+The system is a browser-based voice AI application accessible directly from the university web-
+site without any additional software installation. A visitor initiates a voice or text conversation.
+The spoken query is transcribed by an automatic speech recognition engine [1], converted into
+a structured retrieval query by a Retrieval-Augmented Generation pipeline [2], and answered
+by a large language model [3] whose output is constrained to information verified in the univer-
+sity’s official knowledge base. The generated text is then synthesised into natural Urdu speech
+and played back to the user, alongside a live text transcript for accessibility.
+Key implemented features include real-time Urdu voice interaction with automatic English
+fallback, a WhatsApp-style floating chat widget supporting both voice and text input, multi-turn
+conversation memory, interruptible audio playback, a category-structured knowledge base built
+from eleven domain-specific text files, and a secure administrator panel for knowledge base
+management. The system was validated against eight representative test cases covering both
+in-scope and out-of-scope queries, demonstrating complete accuracy on in-scope responses and
+correct fallback behaviour on out-of-scope queries, with an average end-to-end latency of 4.8
+seconds that satisfies the sub-five-second performance requirement.
+v
+
+===== PAGE 7 =====
+Contents
+1 Introduction . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 1
+2 Research on Existing Products . . . . . . . . . . . . . . . . . . . . . . . . . . 4
+2.1 General-Purpose V oice Assistants . . . . . . . . . . . . . . . . . . . . 4
+2.2 University Chatbot Platforms . . . . . . . . . . . . . . . . . . . . . . . 4
+2.3 Enterprise Customer-Service V oice AI Platforms . . . . . . . . . . . . 5
+2.4 Speech Recognition for Urdu . . . . . . . . . . . . . . . . . . . . . . . 5
+2.5 Text-to-Speech for Urdu . . . . . . . . . . . . . . . . . . . . . . . . . 5
+2.6 Retrieval-Augmented Generation . . . . . . . . . . . . . . . . . . . . 6
+3 Project Vision . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 7
+3.1 Problem Statement . . . . . . . . . . . . . . . . . . . . . . . . . . . . 7
+3.2 Business Opportunity . . . . . . . . . . . . . . . . . . . . . . . . . . . 7
+3.3 Objectives . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 8
+3.4 Project Scope . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 8
+3.5 Constraints . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 8
+3.6 Stakeholders Description . . . . . . . . . . . . . . . . . . . . . . . . . 9
+4 Software Requirement Specifications . . . . . . . . . . . . . . . . . . . . . . . 10
+4.1 List of Features . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 10
+4.2 Functional Requirements . . . . . . . . . . . . . . . . . . . . . . . . . 10
+4.3 Non-Functional Requirements . . . . . . . . . . . . . . . . . . . . . . 12
+5 Iteration Plan . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 13
+5.1 Iteration 1: Core V oice Pipeline . . . . . . . . . . . . . . . . . . . . . 13
+5.2 Iteration 2: Knowledge Base and Language Refinement . . . . . . . . 15
+5.3 Iteration 3: UX Refinement and Administration Panel . . . . . . . . . . 16
+6 Implementation Details . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 17
+6.1 System Architecture Overview . . . . . . . . . . . . . . . . . . . . . . 17
+6.2 Backend Implementation . . . . . . . . . . . . . . . . . . . . . . . . . 17
+6.3 Frontend Implementation . . . . . . . . . . . . . . . . . . . . . . . . . 18
+6.4 Knowledge Base Structure . . . . . . . . . . . . . . . . . . . . . . . . 19
+vi
+
+===== PAGE 8 =====
+Mahir Connect: Advanced Elucidation Support in Local Language
+6.5 Testing and Evaluation . . . . . . . . . . . . . . . . . . . . . . . . . . 20
+7 User Manual . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 21
+7.1 For Prospective Students and Parents . . . . . . . . . . . . . . . . . . 21
+7.2 For Administrators . . . . . . . . . . . . . . . . . . . . . . . . . . . . 21
+8 Conclusions and Recommendations . . . . . . . . . . . . . . . . . . . . . . . 23
+8.1 Conclusions . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 23
+8.2 Recommendations . . . . . . . . . . . . . . . . . . . . . . . . . . . . 23
+References . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 25
+Appendix A Sample Evaluation Queries . . . . . . . . . . . . . . . . . . . . . . . . . . . . 29
+Appendix B AI Tool Usage Disclosure . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 29
+vii
+
+===== PAGE 9 =====
+Mahir Connect: Advanced Elucidation Support in Local Language
+1. Introduction
+Conversational artificial intelligence has undergone a period of rapid maturation, moving from
+narrow rule-based dialogue systems to large-scale neural architectures capable of open-domain
+conversation [8, 3]. Yet despite this progress, the deployment of conversational AI in regional-
+language, domain-specific settings remains limited. The overwhelming majority of commer-
+cially available voice assistants and chatbot platforms are optimised for English and a small
+number of high-resource languages [9]. Communities whose primary language is Urdu, with
+over 230 million speakers one of the most widely spoken languages in the world, continue to
+receive inferior service or no service at all from these systems [10].
+The consequences of this gap are concrete and measurable in Pakistan. In Pakistan, 42 percent
+of adults cannot read in any language [6]. That is over 100 million people, locked out of
+banking, healthcare, education, and government services, simply because the digital world was
+built for text. University front desks face the same barrier. Applicants and parents struggle
+to access basic institutional information that is buried in English portals and long queues at
+administrative offices. For a student travelling from a rural district to inquire about admission
+eligibility, a telephone call or a physical visit to the front desk is not a minor inconvenience; it
+is a significant financial and logistical burden [7].
+The annual admission season at FAST-NUCES Peshawar concentrates this pressure acutely.
+Hundreds of queries arrive daily through email, telephone, and in person, covering topics that
+are largely repetitive: eligibility criteria, entrance test structure, fee payment schedules, schol-
+arship availability, and hostel facilities. The administrative staff who handle these queries are
+performing skilled work, but the work itself is routine and could be performed by a well-
+designed automated system. The opportunity cost of redirecting staff time away from complex,
+judgment-dependent tasks toward answering the same questions hundreds of times each day is
+substantial [11].
+Mahir Connect (meaningExpert on Callin Urdu) is a real-time voice AI web application de-
+signed to address this bottleneck. It allows any visitor to speak a question in Urdu, without
+typing, without navigating menus, and without waiting for a human operator, and receive an
+instant spoken answer grounded in the university’s official documentation. The system is acces-
+sible directly from any modern web browser without additional software installation, making it
+available to users on low-cost mobile devices as well as desktop computers.
+The technical architecture integrates four major components: an automatic speech recognition
+engine based on OpenAI Whisper [1] for transcribing spoken Urdu, a Retrieval-Augmented
+Generation pipeline [2] for grounding responses in verified institutional knowledge, a large
+1
+
+===== PAGE 10 =====
+Mahir Connect: Advanced Elucidation Support in Local Language
+language model for generating natural and contextually appropriate answers [3], and a text-to-
+speech engine for producing natural Urdu audio output [4, 12]. These components are con-
+nected through a FastAPI backend [13] and a React-based frontend [14] that provides both
+a voice interaction card and a WhatsApp-style floating chat widget. A secure administration
+panel allows authorised staff to expand the knowledge base incrementally without requiring
+developer involvement.
+This report documents the complete development lifecycle of Mahir Connect, from initial prob-
+lem formulation and stakeholder analysis through software requirements specification, iterative
+development, implementation details, and evaluation. The structure follows the Development
+FYP Report Format prescribed by the Department of Computer Science, FAST-NUCES.
+2
+
+===== PAGE 11 =====
+Mahir Connect: Advanced Elucidation Support in Local Language
+Figure 1: High-level five-stage pipeline architecture of Mahir Connect. A spoken query passes
+through speech recognition, language detection, retrieval-augmented generation, and text-to-
+speech synthesis before being returned to the user as audio and text.
+3
+
+===== PAGE 12 =====
+Mahir Connect: Advanced Elucidation Support in Local Language
+2. Research on Existing Products
+A structured survey of existing conversational AI products was conducted across three cate-
+gories: general-purpose voice assistants, university-specific chatbot deployments, and enter-
+prise customer-service voice AI platforms. The goal was to identify the capabilities and limita-
+tions of current solutions relative to the requirements of an Urdu-language, domain-constrained,
+academic front-desk assistant.
+2.1 General-Purpose Voice Assistants
+Amazon Alexa, Google Assistant, and Apple Siri represent the dominant commercial voice
+assistant platforms [9]. These systems are engineered for broad consumer use and support a
+wide range of languages. However, their design priorities are fundamentally misaligned with
+the requirements of this project. They lack the ability to answer institution-specific queries
+without substantial custom integration work, and their acoustic models are not tuned for Pak-
+istani phonology, regional vocabulary, or the code-switching patterns common in Pakistani
+Urdu speech [10]. Their closed architectures make it impossible to constrain responses to a
+specific knowledge base, which is a critical requirement for a setting where factual accuracy
+is non-negotiable. A response that is plausible but incorrect about admission deadlines or fee
+amounts could lead an applicant to miss an important window or make an incorrect financial
+decision.
+2.2 University Chatbot Platforms
+Several universities internationally have deployed text-based chatbots for student services. A
+notable example is Georgia Tech’s Jill Watson, built on IBM Watson’s natural language pro-
+cessing infrastructure, which was designed to answer forum questions in online computer sci-
+ence courses [15]. Jill Watson demonstrated that a domain-specific chatbot can achieve high
+accuracy when its knowledge domain is well-defined and its training data is curated. However,
+it is a text-only, English-language system, and the IBM Watson platform carries per-query
+pricing that is not feasible for institutions operating on academic budgets. More broadly, the
+university chatbot market has been dominated by text-based interfaces, neglecting the large
+segment of applicants who are more comfortable with spoken communication in their native
+language [11, 16].
+Among Pakistani universities, deployments of Facebook Messenger-based and web-based chat-
+bots for admission queries have been observed, but these systems operate exclusively in text
+and are largely rule-based, offering limited ability to handle the natural variation in how users
+4
+
+===== PAGE 13 =====
+Mahir Connect: Advanced Elucidation Support in Local Language
+phrase familiar questions [17]. None of the surveyed systems support voice input or Urdu audio
+output.
+2.3 Enterprise Customer-Service Voice AI Platforms
+Commercial platforms including Google Dialogflow CX [19], Amazon Lex [20], and Mi-
+crosoft Azure Bot Service [21] provide full-stack infrastructure for deploying voice-enabled
+conversational agents. These platforms offer pre-built speech recognition, intent classifica-
+tion, entity extraction, and dialogue management components, and their engineering quality
+is high. However, all three carry per-minute or per-request billing that becomes prohibitive
+at the scale of a continuous, publicly accessible application. None provides pre-built Urdu
+acoustic models trained on Pakistani speech data, and integrating a domain-specific knowledge
+base with retrieval-augmented generation requires substantial custom development. The Rasa
+open-source framework [18] offers a self-hosted alternative that avoids per-request costs, but
+its dialogue management model requires extensive labelled training data and does not natively
+support the modern large language model approach to response generation that underpins Mahir
+on Call’s conversational quality and flexibility.
+2.4 Speech Recognition for Urdu
+Automatic speech recognition for Urdu presents particular challenges. The language uses
+Arabic script written right-to-left, and spoken Pakistani Urdu incorporates significant code-
+switching with English technical vocabulary and regional Pashto and Punjabi phonological
+influences [10]. OpenAI’s Whisper model [1] is trained on 680,000 hours of multilingual
+web audio, including a substantial Urdu component, and is the most capable openly acces-
+sible model for this language at the time of writing. Deepgram’s Nova-2 commercial ASR API
+[22] offers lower latency but reduced accuracy on accented Urdu. The trade-off between ac-
+curacy and latency is a central engineering tension addressed in this project’s implementation.
+Relevant techniques from the broader speech and language processing literature, including the
+probabilistic relevance models surveyed by Robertson and Zaragoza [23] and the evaluation
+metrics formalised by Papineni et al. [24], inform the evaluation methodology applied in this
+project.
+2.5 Text-to-Speech for Urdu
+The synthesis of natural Urdu speech from text is more constrained than recognition. Mi-
+crosoft Azure Neural TTS and Amazon Polly both offer Urdu voices, but these were found
+to produce robotic prosody unsuitable for a customer-facing assistant during the exploratory
+5
+
+===== PAGE 14 =====
+Mahir Connect: Advanced Elucidation Support in Local Language
+phase of this project. ElevenLabs [4] offers a multilingual neural voice model that produces
+significantly more natural-sounding Urdu output and was selected as the primary TTS engine
+for production deployment. Uplift AI [12], a Pakistani technology company, provides an Urdu-
+specialised TTS API with acoustic models trained specifically on Pakistani speech, offering
+superior naturalness for this particular deployment context. The system is architected to sup-
+port both providers through a configurable backend module, with the active implementation
+controlled by an environment variable.
+2.6 Retrieval-Augmented Generation
+The RAG paradigm, formalised by Lewis et al. [2], provides the theoretical foundation for
+grounding large language model responses in a specific document corpus. Rather than rely-
+ing on the parametric knowledge encoded during pretraining, a RAG system retrieves the most
+semantically relevant passages from a vector database at inference time and injects them into
+the model’s context window. The Transformer architecture underlying modern large language
+models [25] enables effective use of this injected context, and models such as BERT [26]
+and GPT-series models [8, 3] have demonstrated strong performance on context-conditioned
+question answering tasks [27]. Vector similarity search is performed using approximate near-
+est neighbour techniques [28], enabling efficient retrieval over large document corpora. The
+LangChain framework [29] provides orchestration utilities connecting the embedding, retrieval,
+and generation components, while ChromaDB [5] serves as the persistent vector store with
+SQLite backing.
+6
+
+===== PAGE 15 =====
+Mahir Connect: Advanced Elucidation Support in Local Language
+3. Project Vision
+3.1 Problem Statement
+In Pakistan, 42 percent of adults cannot read in any language. That is over 100 million people,
+locked out of banking, healthcare, education, and government services, simply because the
+digital world was built for text [6, 7]. University front desks face the same barrier. Applicants
+and parents struggle to access basic institutional information that is buried in English portals
+and long queues at administrative offices. For a first-generation university applicant whose
+family has invested significant resources in pursuing higher education, the inability to quickly
+determine eligibility, deadlines, or how to pay the admission fee is not a minor inconvenience;
+it is a structural obstacle that can result in a missed opportunity and a foreclosed future.
+During the annual admission season, the administrative offices of FAST-NUCES Peshawar
+receive hundreds of emails and telephone calls per day from prospective students and their par-
+ents. The queries are predominantly repetitive, covering a predictable set of topics: eligibility
+criteria, the NU-Test entrance examination, application procedures, fee structures, scholarship
+policies, and hostel availability. The volume of queries consistently exceeds the capacity of
+the administrative staff to respond in a timely manner, leading to delayed responses, frustrated
+applicants, and an inefficient allocation of skilled human resources to routine information re-
+trieval tasks. A significant proportion of the applicant pool is Urdu speaking and is not fully
+comfortable with English-language digital interfaces, further reducing their ability to access
+information independently [10].
+3.2 Business Opportunity
+A voice-first, Urdu-language AI service embedded in the university website creates value across
+multiple dimensions simultaneously. For applicants and their families, it eliminates the need
+to travel to the campus, wait on hold, or compose a written query in a language in which
+they may not be fluent. For administrative staff, it redirects their capacity from answering the
+same ten questions hundreds of times each day toward complex, judgment-dependent cases that
+genuinely require human expertise. For the institution, it reduces operational costs, improves
+the quality and consistency of information delivered to applicants, and demonstrates a concrete
+commitment to serving all segments of Pakistani society, not only those already comfortable
+navigating English-language digital systems.
+The architecture of Mahir Connect is intentionally modular. The knowledge base is the only
+institution-specific component; the speech recognition pipeline, the RAG engine, the language
+model, and the TTS synthesiser are all parameterised by configuration values. Extending the
+7
+
+===== PAGE 16 =====
+Mahir Connect: Advanced Elucidation Support in Local Language
+system to other FAST campuses requires only the creation of a new knowledge base file set and
+the update of a small number of configuration parameters. In the longer term, the same platform
+can serve other Pakistani universities facing identical challenges, representing a meaningful
+contribution to the broader goal of democratising access to institutional information in South
+Asia.
+3.3 Objectives
+The project set out to achieve five primary objectives. The first was to develop a real-time
+voice AI web application accessible from any modern browser without additional software
+installation, ensuring that a mobile phone with a data connection was a sufficient device to
+use the system. The second was to support Urdu language voice input and output, serving the
+majority of the applicant pool in their most comfortable medium of communication [10]. The
+third was to provide instant, accurate answers to admission-related queries by grounding all
+responses in a RAG-based knowledge base [2] derived from official FAST-NUCES Peshawar
+documentation, ensuring that no answer could be fabricated by the language model. The fourth
+was to display a live transcript of the conversation for accessibility, serving users who are deaf,
+hard of hearing, or who prefer to read. The fifth was to achieve an average end-to-end response
+latency of under five seconds for typical queries, ensuring that the conversational rhythm felt
+natural rather than mechanical.
+3.4 Project Scope
+The system is scoped specifically to admission-related queries at FAST-NUCES Peshawar for
+the academic session 2025–2026. The knowledge base covers eleven content categories: ad-
+missions procedures and eligibility, general information and portal guidance, fee and payment
+structures, transfer and programme change policies, degree programmes offered, academic
+policies, orientation and scheduling, hostel and accommodation, scholarships and financial aid,
+campus and facilities, and faculty information. Queries outside this scope are handled by a
+defined fallback response that acknowledges the limitation and, where appropriate, directs the
+user to the relevant administrative contact. The system does not make case-specific decisions,
+as such determinations require human judgment and access to application data.
+3.5 Constraints
+The knowledge base defines the ceiling of the system’s factual accuracy. Any information not
+present in the curated knowledge base cannot be answered correctly, and the system is designed
+to acknowledge this limitation transparently rather than generate plausible but unverified con-
+8
+
+===== PAGE 17 =====
+Mahir Connect: Advanced Elucidation Support in Local Language
+tent. The pipeline relies on three external commercial APIs, each introducing per-call latency
+and cost, as well as a dependency on third-party uptime. Real-time voice processing requires
+a stable broadband connection; performance degrades measurably on networks below 1 Mbps.
+The browser microphone permission model requires an explicit user gesture before recording
+can begin, adding one interaction step compared to a dedicated mobile application. The current
+implementation serves FAST-NUCES Peshawar only; extending to other campuses requires a
+new knowledge base ingestion cycle.
+3.6 Stakeholders Description
+Stakeholders Summary
+The primary users of Mahir Connect are prospective students and their parents or guardians
+considering applying to FAST-NUCES Peshawar. This group is characterised by high query
+volume during the admission window, time sensitivity, and a preference in many cases for Urdu
+over English as the medium of communication. The secondary users are the administrative
+staff of the admissions office, who benefit from reduced query load and gain a tool through the
+administration panel to keep the system’s knowledge base current. The tertiary stakeholders
+are the university leadership and faculty, who benefit from improved institutional reputation
+and reduced operational overhead.
+Key High-Level Goals and Problems of Stakeholders
+Prospective applicants and their families need quick, accurate, and trustworthy answers to time-
+sensitive questions in their preferred language. Their primary problem is that this information
+is currently accessible only through English-language portals, overloaded telephone lines, or
+in-person visits to the campus [7]. Administrative staff need a system that reduces routine
+query volume without creating new maintenance burdens; their primary problem is the mis-
+match between incoming query volume during admission season and available staff capacity.
+University leadership needs a solution that is cost-effective, extensible, and consistent with the
+institution’s commitment to academic and operational excellence.
+9
+
+===== PAGE 18 =====
+Mahir Connect: Advanced Elucidation Support in Local Language
+4. Software Requirement Specifications
+4.1 List of Features
+Mahir Connect provides voice-based and text-based interaction channels through two comple-
+mentary interface components. The primary voice card allows users to record a spoken query
+and receive both an audio response and a text transcript. The floating chat widget, styled in the
+manner of a WhatsApp conversation panel, supports both typed text input and voice recording,
+with all responses displayed as timestamped message bubbles alongside speaker buttons that
+trigger on-demand audio playback. Both interfaces share a common underlying hook archi-
+tecture that maintains conversation history across multiple turns within a single session. The
+knowledge base powering the system is partitioned into eleven thematic categories, each stored
+as a separate source in the ChromaDB vector store [5]. The administration panel, accessible at
+the/adminroute of the application, provides a secure login gate, a knowledge base status ta-
+ble, and a file upload facility for adding new content without requiring developer access. Audio
+playback is interruptible at any point, allowing the user to begin a new query before the current
+response has finished.
+4.2 Functional Requirements
+ID Feature Requirement
+FR-01 V oice Input The system shall capture microphone audio from
+the browser using the MediaRecorder API and
+transmit it to the backend as a multipart audio file.
+FR-02 Speech-to-Text The system shall transcribe speech to text us-
+ing OpenAI Whisper [1], achieving a Word Error
+Rate of 25% or below on a representative Urdu
+test set.
+FR-03 Language Detection The system shall automatically detect whether the
+spoken input is in Urdu or English and route the
+query through the appropriate processing path.
+FR-04 Knowledge Retrieval The system shall embed the query using
+text-embedding-ada-002[30] and perform a
+similarity search over the ChromaDB vector store
+[5], returning the top five most relevant document
+chunks as context.
+10
+
+===== PAGE 19 =====
+Mahir Connect: Advanced Elucidation Support in Local Language
+ID Feature Requirement
+FR-05 Response Generation The system shall generate a contextually accurate
+and conversationally warm response using GPT-
+4o-mini [3], constrained to information present in
+the retrieved context.
+FR-06 Text-to-Speech The system shall synthesise the generated text re-
+sponse into natural Urdu or English audio and re-
+turn it to the frontend as a base64-encoded MP3
+data URL for browser playback.
+FR-07 Text Input The system shall accept typed queries through the
+chat widget’s text input field and process them
+through the same RAG pipeline, skipping the
+speech recognition stage.
+FR-08 Conversation Memory The system shall maintain a record of the last
+three conversational exchanges within a session
+and include this history in each subsequent LLM
+call to enable contextual follow-up queries [8].
+FR-09 Interrupt The system shall allow the user to interrupt ongo-
+ing audio playback at any time by activating the
+microphone control, immediately halting play-
+back and returning the interface to idle state.
+FR-10 Admin Authentication The administration panel shall require HTTP Ba-
+sic Authentication using credentials stored in en-
+vironment variables before granting access to any
+knowledge base management functionality.
+FR-11 Knowledge Ingestion The administration panel shall accept plain-text
+files, chunk them into 500-token segments with
+50-token overlap using a recursive character text
+splitter [29], embed the chunks, and upsert them
+into ChromaDB using deterministic identifiers to
+prevent duplicate entries.
+FR-12 Fallback When no sufficient context is retrieved, the sys-
+tem shall respond with a defined fallback message
+and shall not generate speculative content.
+11
+
+===== PAGE 20 =====
+Mahir Connect: Advanced Elucidation Support in Local Language
+4.3 Non-Functional Requirements
+ID Category Requirement
+NFR-01 Performance End-to-end response latency shall be under five sec-
+onds for 90% of queries on a connection of 10 Mbps
+or above.
+NFR-02 Accuracy The system shall return accurate, in-scope responses
+to at least 80% of queries drawn from the evaluation
+test set.
+NFR-03 Availability The system shall target 99% uptime during the admis-
+sion season window.
+NFR-04 Scalability The system shall handle at least 20 concurrent voice
+sessions without performance degradation.
+NFR-05 Security All data in transit shall be encrypted using TLS 1.2
+or above. No personally identifiable information shall
+be stored beyond the session. API keys shall be stored
+in environment variables and never committed to ver-
+sion control.
+NFR-06 Usability A user with no technical background shall be able to
+initiate a voice conversation within 30 seconds of vis-
+iting the page, on any device with a modern browser
+and microphone access [15].
+NFR-07 Accessibility The live transcript shall comply with WCAG 2.1
+Level AA contrast and text-size guidelines.
+NFR-08 Maintainability The knowledge base shall be updatable by authorised
+non-technical staff through the administration panel
+without access to the codebase or development tools.
+12
+
+===== PAGE 21 =====
+Mahir Connect: Advanced Elucidation Support in Local Language
+5. Iteration Plan
+The project was developed using an iterative approach with three major iterations, each building
+incrementally on the previous and delivering a testable, demonstrable system at its conclusion.
+This approach was chosen to allow early validation of core technical assumptions, particu-
+larly the feasibility of Urdu speech recognition and language-constrained response generation,
+before committing to the full feature set.
+5.1 Iteration 1: Core Voice Pipeline
+The first iteration established the end-to-end voice processing pipeline and validated the se-
+lected technologies for each stage. The primary deliverable was a working prototype capable
+of accepting a spoken Urdu query, transcribing it, generating a response from a preliminary
+knowledge base, and returning that response as synthesised audio. This iteration confirmed that
+OpenAI Whisper’s multilingual model [1] provided sufficient accuracy for Pakistani-accented
+Urdu, that GPT-4o-mini with RAG-injected context [2] could generate factually grounded re-
+sponses without hallucinating content, and that the selected TTS engine could produce accept-
+ably natural Urdu speech from Roman-script input.
+Use Case Diagram
+Figure 2 illustrates the primary use cases of the system involving two actors: the User, repre-
+senting any prospective student or parent visiting the university website, and the Administrator,
+representing authorised university staff with access to the knowledge base management panel.
+13
+
+===== PAGE 22 =====
+Mahir Connect: Advanced Elucidation Support in Local Language
+Figure 2: Use case diagram for Mahir Connect.
+Use Case Descriptions
+Start Voice Conversation.The user clicks the microphone button on the web page. The
+browser requests microphone permission, and upon grant, begins capturing audio via the Me-
+diaRecorder API. The captured audio blob is transmitted to the FastAPI backend upon the user
+releasing the microphone control or after the maximum recording duration of 30 seconds is
+reached.
+Submit Text Query.The user types a query into the chat widget’s text input field and presses
+Enter or the send button. The query is transmitted directly to the/text-queryendpoint,
+bypassing the speech recognition stage entirely.
+Receive Answer.The system returns a JSON response containing the transcript of the user’s
+query, the text of the generated answer, and a base64-encoded MP3 audio data URL [9]. The
+14
+
+===== PAGE 23 =====
+Mahir Connect: Advanced Elucidation Support in Local Language
+frontend displays the transcript and answer as message bubbles and provides a speaker button
+for on-demand audio playback.
+Interrupt Playback.While audio is playing, the user may activate the microphone control to
+interrupt playback. The audio stops immediately and the interface returns to idle state, ready
+for the next query without clearing the conversation history.
+Manage Knowledge Base.An authenticated administrator logs into the/adminpanel, views
+the current knowledge base composition by source file, and uploads a new plain-text file. The
+system chunks, embeds, and upserts the content into ChromaDB, then displays a confirmation
+message and refreshes the source table.
+5.2 Iteration 2: Knowledge Base and Language Refinement
+The second iteration focused on constructing a production-quality knowledge base, refining the
+RAG pipeline for conversational appropriateness, and extending language support to handle the
+full range of Urdu and English input encountered in practice. The single-file knowledge base
+used in Iteration 1 was replaced with a category-structured approach in which each domain
+topic is stored as a separate source file with its own chunk set and metadata [5]. This enabled
+the administration panel to display per-source statistics and allowed the system prompt to be
+tuned for context-aware, warm responses rather than literal one-line answers.
+The GPT-4o-mini system prompt [3] was substantially revised during this iteration. The initial
+prompt produced accurate but terse responses that failed to mention related resources or alter-
+natives when the direct answer to a query was negative. The revised prompt instructs the model
+to apply a graduated response strategy: provide complete information when the knowledge
+base contains it; provide partial information with an acknowledgement of limitations when
+only partial information is available; suggest a relevant website link or contact channel only
+when it appears directly in the retrieved context and is specifically relevant to the query; and
+direct the user to administrative staff only for genuinely case-specific or approval-dependent
+requests.
+The TTS preprocessing module was also developed during this iteration. Apreprocessfor tts()
+function was added to the TTS backend module to address systematic mispronunciation issues
+arising from the presence of all-caps abbreviations and URLs in the knowledge base text [9].
+The function applies URL replacement with the spoken word “Link,” a hardcoded pronunci-
+ation dictionary mapping known institutional abbreviations to their phonetically appropriate
+forms, and a fallback rule converting any remaining four-or-more-character all-caps token to
+title case.
+15
+
+===== PAGE 24 =====
+Mahir Connect: Advanced Elucidation Support in Local Language
+5.3 Iteration 3: UX Refinement and Administration Panel
+The third iteration addressed user experience quality and operational maintainability. The chat
+widget was redesigned from a voice-only interface to a WhatsApp-style panel supporting both
+voice and text input, with timestamped message bubbles and on-demand speaker buttons rather
+than automatic audio playback. Multi-turn conversation memory was implemented by transmit-
+ting the last three exchanges as history alongside each new query, enabling the language model
+to resolve anaphoric references across turns [8]. The audio interrupt feature was completed,
+allowing users to stop a playing response without waiting for it to conclude. The adminis-
+tration panel was built as a React Router route within the existing frontend application [14],
+providing a login-gated interface for knowledge base file uploads. Comprehensive system test-
+ing was conducted against the eight representative evaluation queries defined in Appendix A,
+and identified bugs were resolved.
+16
+
+===== PAGE 25 =====
+Mahir Connect: Advanced Elucidation Support in Local Language
+6. Implementation Details
+6.1 System Architecture Overview
+Mahir Connect follows a client-server architecture in which a React single-page application
+[14] communicates with a Python FastAPI backend [13] over HTTPS. The backend acts as
+an orchestrator, invoking three external AI APIs in sequence: OpenAI Whisper for speech
+recognition [1], OpenAI GPT-4o-mini for response generation [3], and ElevenLabs or Uplift AI
+for speech synthesis [4, 12]. The ChromaDB vector store [5] and the LangChain orchestration
+framework [29] run within the same backend process, eliminating the need for a separate vector
+database server and minimising deployment complexity.
+6.2 Backend Implementation
+The backend is structured as a Python package under thebackend/directory. Theconfig.py
+module loads all environment variables from a.envfile at startup and raises a descriptive er-
+ror if any required API key is absent, preventing silent failures. Themain.pymodule defines
+the FastAPI application [13] with primary endpoints for voice queries (POST /voice-query),
+text queries (POST /text-query), and a family of/admin/*routes for knowledge base man-
+agement, all protected by HTTP Basic Authentication. CORS is configured to permit requests
+from the frontend development server.
+Speech-to-Text Module
+Thestt.pymodule implements thetranscribe audio(audio bytes, mimetype)func-
+tion. The production implementation uses the OpenAIwhisper-1API, corresponding to the
+Whisper large-v3 model [1]. Audio bytes received from the frontend are written to a temporary
+file with an extension derived from the MIME type, submitted to the Whisper transcription
+endpoint with automatic language detection enabled, and the temporary file is deleted after the
+API call completes regardless of outcome. The detected language code is normalised to a bi-
+nary Urdu-or-English classification: the codesur(Urdu),hi(Hindi), andpa(Punjabi) are all
+mapped to Urdu, reflecting the phonetic overlap between these languages in Pakistani speech
+[10]. A commented Deepgram Nova-2 implementation [22] is preserved in the module for ref-
+erence and can be re-enabled to prioritise latency over accuracy in deployments where network
+conditions make the Whisper API slower.
+17
+
+===== PAGE 26 =====
+Mahir Connect: Advanced Elucidation Support in Local Language
+Retrieval-Augmented Generation Module
+Therag.pymodule is the core of the system’s intelligence. At module load time, a LangChain
+Chroma vector store instance [29, 5] is initialised against the persistentchroma db/directory.
+Thegenerate response(query, language, conversation history)function first em-
+beds the query usingtext-embedding-ada-002[30] and performs a similarity search [28],
+retrieving the top five most relevant chunks. The retrieved chunks are concatenated into a con-
+text string, and a GPT-4o-mini completion is requested [3] with a system prompt that instructs
+the model to answer in a warm and conversational manner grounded exclusively in the retrieved
+context. The conversation history from the last three exchanges is injected into the messages
+array between the system prompt and the current user query, enabling the model to resolve
+anaphoric references across turns [8]. Themax tokensparameter is set to 300, bounding gen-
+eration latency. For Urdu queries, the model returns a JSON object containing both a Roman
+Urdu display string and an Arabic script Urdu string for TTS synthesis.
+Theingest text(text, source label)function splits incoming text using aRecursiveCharacterTextSplitter
+with a chunk size of 500 tokens and an overlap of 50 tokens [29]. Each chunk is assigned a de-
+terministic identifier computed as the MD5 hash of a string combining the source label, chunk
+index, and the first 40 characters of the chunk text, making the ingestion process idempotent.
+Text-to-Speech Module
+Thetts.pymodule exposes thesynthesize speech(text)function. Before any API call,
+thepreprocess for tts(text)function applies three sequential normalisation steps [9].
+URLs are replaced with the spoken word “Link” to prevent letter-by-letter pronunciation. A
+hardcoded dictionary maps known institutional abbreviations to phonetically appropriate forms.
+Any remaining all-caps token of four or more characters is converted to title case by a general
+fallback rule. The preprocessed text is submitted to the ElevenLabs [4] or Uplift AI [12] TTS
+API, and the returned raw MP3 binary data is Base64-encoded and returned as a data URL for
+browser playback.
+6.3 Frontend Implementation
+The frontend is a React 19 single-page application built with Vite 7 and Tailwind CSS 4 [14]. A
+shared custom hook,useVoiceRecorder.js, encapsulates all state management, API commu-
+nication, and audio playback logic. The hook manages a five-state machine:idle,listening,
+processing,responding, anderror. API requests are wrapped in an AbortController with a
+30-second timeout to prevent interface freezes if any external API is slow to respond. A React
+reference stores the currently active Audio object, enabling theinterruptAudio()function
+18
+
+===== PAGE 27 =====
+Mahir Connect: Advanced Elucidation Support in Local Language
+to pause and clear playback instantly and return the interface to idle state without triggering
+automatic recording.
+The chat widget presents conversation history as a scrollable list of message bubbles. Each
+message object stores a role, the response text, a formatted timestamp, and the audio data URL.
+Speaker buttons on bot message bubbles allow on-demand playback of any historical response;
+activating a speaker button while another audio is playing stops the previous one first. The
+administration panel is implemented as a React Router route at/admin, presenting a login
+gate, a knowledge base source table, and a drag-and-drop file upload zone accepting.txtfiles
+up to 2 MB.
+6.4 Knowledge Base Structure
+The knowledge base consists of eleven plain-text files, each representing one thematic category,
+producing approximately 450 to 600 chunks in thesampleChromaDB collection [5]. Table 3
+describes the eleven categories.
+Category File Content Focus
+admission.txtAdmission process, eligibility, merit criteria,
+NU-Test, application portal
+general information.txtGeneral queries, portal guidance, website refer-
+ences, contact information
+fee and payment.txtFee structure, payment deadlines, challan pro-
+cedure, tuition, refund policy
+transfer and program change.txtCampus and programme transfers, preference
+changes, migration procedures
+programs and curriculum.txtDegree programmes offered, curriculum struc-
+ture, specialisations
+academic policies.txtGrading, GPA, attendance, examinations, aca-
+demic warnings, AI usage policy
+orientation and schedule.txtOrientation dates, class schedules, academic
+calendar
+hostel and accommodation.txtHostel facilities, room allocation, mess, accom-
+modation policies
+scholarship and financial aid.txtScholarships, study loans, financial assistance,
+PEEF, HEC schemes
+campus and facilities.txtCampus location, transport, dress code, avail-
+able facilities
+19
+
+===== PAGE 28 =====
+Mahir Connect: Advanced Elucidation Support in Local Language
+Category File Content Focus
+faculty.txtFaculty members, departments, and academic
+contacts
+Table 3: Knowledge base category structure for Mahir Connect.
+6.5 Testing and Evaluation
+The system was evaluated against eight representative spoken queries spanning both in-scope
+and out-of-scope topics, as described in Appendix A. All queries were submitted as audio files
+via the/voice-queryendpoint. For in-scope queries, the evaluation assessed factual accuracy
+relative to knowledge base content, conversational appropriateness of tone, and absence of
+hallucinated content. For out-of-scope queries, the evaluation assessed correct delivery of the
+fallback response without speculative content generation. The system achieved accurate in-
+scope responses on all five in-scope test cases and correct fallback behaviour on all three out-
+of-scope test cases. End-to-end latency averaged 4.8 seconds, meeting the NFR-01 target.
+Table 4 summarises the evaluation outcomes.
+Test Type Result Notes
+In-scope accuracy 5/5 (100%) All factual claims matched KB con-
+tent
+Out-of-scope fallback 3/3 (100%) No hallucinated content observed
+Avg. end-to-end latency 4.8 s Meets NFR-01 (<5 s)
+Idempotent re-upload Pass Duplicate chunks not created
+Conversation continuity Pass Follow-up queries resolved cor-
+rectly
+Table 4: Summary of system evaluation results.
+20
+
+===== PAGE 29 =====
+Mahir Connect: Advanced Elucidation Support in Local Language
+7. User Manual
+7.1 For Prospective Students and Parents
+To use Mahir Connect, navigate to the FAST-NUCES Peshawar website at the URL provided
+by the admissions office. The application loads directly in any modern web browser, including
+those on mobile devices, without requiring any software installation or account creation.
+When the page loads, click the microphone button in the voice card or the circular chat button at
+the bottom-right corner of the screen to open the chat widget. If the browser’s microphone has
+not been previously permitted on this website, a permission prompt will appear; clickAllowto
+grant microphone access. This permission is required for voice input and is not requested for
+text queries.
+To ask a question by voice, click the microphone button once and speak clearly in Urdu or
+English, for example:FAST Peshawar mein BS ke liye apply kaise karna hai?The button will
+show a pulsing animation while recording. The query is submitted automatically after speaking,
+or after the 30-second limit is reached. The interface will display a processing indicator while
+the system transcribes the speech and generates a response. The response will appear as a text
+bubble with a speaker button; click the speaker button to hear the audio. To stop the audio
+before it finishes, click the microphone button at any time.
+To ask a question by text, type the query into the text field at the bottom of the chat widget and
+press Enter or the send button. Text queries are processed through the same knowledge base
+and receive both a text response and an audio response accessible via the speaker button.
+To ask a follow-up question, simply continue the conversation without resetting. The system
+retains the last three exchanges and correctly resolves contextual references such as “aur uski
+fees kitni hai?” To start a completely fresh conversation, click the “New Conversation” button,
+which clears the history. For questions the system cannot answer, the response will acknowl-
+edge the limitation and suggest the relevant contact channel.
+7.2 For Administrators
+To access the administration panel, navigate to/adminappended to the application URL. Enter
+the administrator credentials when prompted. Once logged in, the panel displays a table of all
+current knowledge base sources, showing the filename and a one-sentence description of each
+category’s content.
+To add new content to the knowledge base, scroll to the “Add to Knowledge Base” section and
+drag and drop a.txtfile onto the upload zone, or click the zone to browse for a file. The file
+21
+
+===== PAGE 30 =====
+Mahir Connect: Advanced Elucidation Support in Local Language
+must be in plain-text format and no larger than 2 MB. Click “Upload & Embed” to initiate the
+ingestion process. A spinning indicator will appear while the file is being processed; do not
+close the browser tab during this time. On successful completion, a green confirmation banner
+will display the filename of the ingested document. On failure, a red error banner will appear.
+The knowledge base source table refreshes automatically after a successful upload.
+22
+
+===== PAGE 31 =====
+Mahir Connect: Advanced Elucidation Support in Local Language
+8. Conclusions and Recommendations
+8.1 Conclusions
+Mahir Connect demonstrates that a production-quality, domain-specific, Urdu-language voice
+AI system can be built and deployed within the resource constraints of a Final Year Project,
+using modern large language model APIs [3], open-source vector database technology [5],
+and a React-based frontend [14]. The system meets all five primary objectives stated in Sec-
+tion 3.3. It is accessible from any modern browser without installation, supports Urdu voice
+input and output, grounds all responses in a curated institutional knowledge base through
+retrieval-augmented generation [2], provides a live text transcript, and achieves an average
+latency of 4.8 seconds that satisfies the sub-five-second target.
+More significantly, the project validates a design philosophy directly relevant to the broader
+challenge of digital inclusion in Pakistan. By placing spoken Urdu at the centre of the interac-
+tion model rather than treating it as an afterthought, the system serves a population segment that
+is systematically excluded from text-first digital services [6, 7]. The architecture demonstrates
+that the gap between English-language AI products and the needs of Urdu-speaking communi-
+ties is not technically unbridgeable; it is a question of design priority. The RAG approach [2]
+provides a principled mechanism for constraining the system’s outputs to verified institutional
+information, addressing the hallucination risk that makes unconstrained large language models
+[8] unsuitable for settings where factual accuracy carries real consequences for applicants. The
+category-structured knowledge base and the administration panel together ensure that the sys-
+tem remains maintainable after deployment without depending on the continued availability of
+the development team.
+8.2 Recommendations
+The knowledge base should be reviewed and updated by administrative staff before each ad-
+mission season to reflect changes in fee structures, programme offerings, scholarship criteria,
+and application procedures. The administration panel makes this process accessible to non-
+technical staff, but a formal annual review cycle should be established to ensure it happens
+consistently. Outdated information in the knowledge base is more harmful than a gap in cover-
+age, because the system will return the outdated answer with the same confidence as a correct
+one.
+The architecture is intentionally modular. The knowledge base is the only institution-specific
+component; the speech recognition, RAG engine, language model, and TTS synthesiser mod-
+ules are all parameterised by configuration values. Extending the system to other FAST cam-
+23
+
+===== PAGE 32 =====
+Mahir Connect: Advanced Elucidation Support in Local Language
+puses or other Pakistani universities requires only the creation of a new knowledge base file
+set and updates to a small number of configuration parameters. A phased multi-campus rollout
+would allow the platform to serve a substantially larger population with minimal additional
+engineering investment.
+An analytics module logging query topics, response latency breakdowns, and user feedback
+signals should be added in a future iteration. This data would allow the admissions office to
+identify the most common applicant concerns, enabling improvements to official communi-
+cation materials and early detection of categories where the knowledge base is insufficient or
+outdated. Query analytics would also enable data-driven optimisation of the RAG retrieval pa-
+rameters, such as the similarity score threshold below which the fallback response is triggered
+[23].
+Integration of a WhatsApp Business API channel, through which students can send voice notes
+or text messages to a university-owned number and receive voice note responses, would extend
+the system’s reach to the communication channel already used by the overwhelming majority
+of Pakistani mobile users. The backend pipeline is channel-agnostic; a webhook would be
+sufficient to connect WhatsApp as an additional input and output channel without modifying
+any existing pipeline component.
+24
+
+===== PAGE 33 =====
+Mahir Connect: Advanced Elucidation Support in Local Language
+References
+25
+
+===== PAGE 34 =====
+Bibliography
+[1] A. Radford, J. W. Kim, T. Xu, G. Brockman, C. McLeavey, and I. Sutskever, “Robust
+speech recognition via large-scale weak supervision,” inProc. 40th Int. Conf. Mach.
+Learn. (ICML), Honolulu, HI, USA, 2023, pp. 28492–28518.
+[2] P. Lewis, E. Perez, A. Piktus, F. Petroni, V . Karpukhin, N. Goyal, H. K ¨uttler, M. Lewis,
+W.-t. Yih, T. Rockt¨aschelet al., “Retrieval-augmented generation for knowledge-intensive
+NLP tasks,” inProc. 34th Conf. Neural Inf. Process. Syst. (NeurIPS), 2020, pp. 9459–
+9474.
+[3] OpenAI, “GPT-4 technical report,” arXiv preprint arXiv:2303.08774, Mar. 2023.
+[4] ElevenLabs, Inc., “ElevenLabs API documentation,” New York, NY , USA, 2024. [On-
+line]. Available:https://docs.elevenlabs.io
+[5] Chroma, Inc., “ChromaDB: The AI-native open-source vector database,” 2024. [Online].
+Available:https://docs.trychroma.com
+[6] UNESCO Institute for Statistics, “Pakistan - literacy rate, adult total (% of people ages
+15 and above),” UNESCO, Montreal, Canada, 2023. [Online]. Available:https://uis.
+unesco.org/en/country/pk
+[7] Government of Pakistan,Pakistan Social and Living Standards Measurement Survey
+(PSLM) 2019–20, Pakistan Bureau of Statistics, Islamabad, Pakistan, 2021.
+[8] T. Brown, B. Mann, N. Ryder, M. Subbiah, J. D. Kaplan, P. Dhariwal, A. Neelakantan,
+P. Shyam, G. Sastry, A. Askellet al., “Language models are few-shot learners,” inProc.
+34th Conf. Neural Inf. Process. Syst. (NeurIPS), 2020, pp. 1877–1901.
+[9] D. Jurafsky and J. H. Martin,Speech and Language Processing, 3rd ed. (draft), 2023.
+[Online]. Available:https://web.stanford.edu/ ~jurafsky/slp3/
+[10] A. Q. Akbar, M. A. Akhter, and A. Iqbal, “Urdu natural language processing: A com-
+prehensive survey,”IEEE Access, vol. 10, pp. 55498–55516, 2022, doi: 10.1109/AC-
+CESS.2022.3175820.
+26
+
+===== PAGE 35 =====
+Mahir Connect: Advanced Elucidation Support in Local Language
+[11] E. Adamopoulou and L. Moussiades, “Chatbots: History, technology, and ap-
+plications,”Machine Learning with Applications, vol. 2, p. 100006, 2020, doi:
+10.1016/j.mlwa.2020.100006.
+[12] Uplift AI, “Orator API documentation: Urdu text-to-speech,” Pakistan, 2024. [Online].
+Available:https://docs.upliftai.org
+[13] S. Ram ´ırez, “FastAPI documentation,” 2024. [Online]. Available:https://fastapi.
+tiangolo.com
+[14] Meta Platforms, Inc., “React documentation,” 2024. [Online]. Available:https://
+react.dev
+[15] Z. Ashktorab, M. Jain, Q. V . Liao, and J. D. Weisz, “Resilient chatbots: Repair strategy
+preferences for conversational breakdowns,” inProc. CHI Conf. Human Factors Comput.
+Syst. (CHI), Glasgow, UK, 2019, pp. 1–12, doi: 10.1145/3290605.3300484.
+[16] B. A. Shawar and E. Atwell, “Chatbots: Are they really useful?”LDV-Forum - Zeitschrift
+f¨ur Computerlinguistik und Sprachtechnologie, vol. 22, no. 1, pp. 29–49, 2007.
+[17] R. Dale, “The return of the chatbots,”Natural Language Engineering, vol. 22, no. 5, pp.
+811–817, 2016, doi: 10.1017/S1351324916000243.
+[18] T. Bocklisch, J. Faulkner, N. Pawlowski, and A. Nichol, “Rasa: Open source language
+understanding and dialogue management,” arXiv preprint arXiv:1712.05181, Dec. 2017.
+[19] Google LLC, “Dialogflow CX documentation,” Google Cloud, Mountain View, CA, USA,
+2024. [Online]. Available:https://cloud.google.com/dialogflow/cx/docs
+[20] Amazon Web Services, “Amazon Lex developer guide,” Amazon, Seattle, W A,
+USA, 2024. [Online]. Available:https://docs.aws.amazon.com/lex/latest/dg/
+what-is.html
+[21] Microsoft Corporation, “Azure Bot Service documentation,” Microsoft, Redmond,
+W A, USA, 2024. [Online]. Available:https://docs.microsoft.com/en-us/azure/
+bot-service/
+[22] Deepgram, Inc., “Nova-2: Deepgram speech-to-text API documentation,” San Fran-
+cisco, CA, USA, 2024. [Online]. Available:https://developers.deepgram.com/
+docs/nova-2
+[23] S. Robertson and H. Zaragoza, “The probabilistic relevance framework: BM25 and be-
+yond,”Foundations and Trends in Information Retrieval, vol. 3, no. 4, pp. 333–389, 2009,
+doi: 10.1561/1500000019.
+27
+
+===== PAGE 36 =====
+Mahir Connect: Advanced Elucidation Support in Local Language
+[24] K. Papineni, S. Roukos, T. Ward, and W.-J. Zhu, “BLEU: A method for automatic eval-
+uation of machine translation,” inProc. 40th Annu. Meeting Assoc. Comput. Linguistics
+(ACL), Philadelphia, PA, USA, 2002, pp. 311–318.
+[25] A. Vaswani, N. Shazeer, N. Parmar, J. Uszkoreit, L. Jones, A. N. Gomez, Ł. Kaiser, and
+I. Polosukhin, “Attention is all you need,” inProc. 31st Conf. Neural Inf. Process. Syst.
+(NeurIPS), Long Beach, CA, USA, 2017, pp. 5998–6008.
+[26] J. Devlin, M.-W. Chang, K. Lee, and K. Toutanova, “BERT: Pre-training of deep bidirec-
+tional transformers for language understanding,” inProc. Conf. North American Chapter
+Assoc. Comput. Linguistics: Human Lang. Technol. (NAACL-HLT), Minneapolis, MN,
+USA, 2019, pp. 4171–4186.
+[27] S. Garg, T. Vu, and A. Moschitti, “TANDA: Transfer and adapt pre-trained transformer
+models for answer sentence selection,” inProc. AAAI Conf. Artif. Intell., vol. 34, no. 5,
+2020, pp. 7780–7787, doi: 10.1609/aaai.v34i05.6282.
+[28] J. Johnson, M. Douze, and H. J ´egou, “Billion-scale similarity search with GPUs,”
+IEEE Trans. Big Data, vol. 7, no. 3, pp. 535–547, Jul. 2021, doi: 10.1109/TB-
+DATA.2019.2921572.
+[29] LangChain, Inc., “LangChain documentation,” San Francisco, CA, USA, 2024. [Online].
+Available:https://docs.langchain.com
+[30] OpenAI, “Embeddings guide: text-embedding-ada-002,” OpenAI, San Francisco, CA,
+USA, 2024. [Online]. Available:https://platform.openai.com/docs/guides/
+embeddings
+28
+
+===== PAGE 37 =====
+Mahir Connect: Advanced Elucidation Support in Local Language
+Appendix A. Sample Evaluation Queries
+The following table lists the eight evaluation queries used to measure system accuracy and
+fallback behaviour. Queries 1 through 5 are in-scope queries for which the knowledge base
+contains authoritative information. Queries 6 through 8 are out-of-scope queries for which the
+system is expected to deliver the defined fallback response without generating speculative con-
+tent. All queries were submitted as audio recordings in Urdu via the/voice-queryendpoint.
+No. Query (Roman Urdu) Category
+1 PhD applicants ke liye minimum requirements kya hain? Admissions
+2 2025 ke admission process mein application submission
+ki dates kya hain?
+Admissions
+3 Provisional admission kis ko di ja sakti hai? Admissions
+4 Admission ke baad candidates ko kaunsi additional sup-
+port provide ki ja sakti hai?
+General Information
+5 Applicants ko kaun se documents submit karne zaroori
+hain?
+Admissions
+6 FAST mein student counseling ya mental health support
+service available hai?
+Out of scope
+7 University ki library digital resources aur e-books ka
+kitna collection hai?
+Out of scope
+8 Kya university apne students ke liye health insurance ya
+medical coverage plans offer karti hai?
+Out of scope
+Table 5: Evaluation query set for Mahir Connect.
+Appendix B. AI Tool Usage Disclosure
+In accordance with the Student Declaration, the following generative AI tools were used dur-
+ing the preparation of this report and the associated software system. Full responsibility for
+the selection, application, and interpretation of all AI-generated content rests with the named
+authors.
+Claude 3.5 Sonnet (Anthropic, Inc., version claude-3-5-sonnet-20241022) was used for lan-
+guage enhancement of written sections of this report, for code review and debugging assistance
+during backend and frontend development, and for the generation of system prompt templates
+in the RAG module. All AI-generated text was reviewed, verified for factual accuracy, and
+29
+
+===== PAGE 38 =====
+Mahir Connect: Advanced Elucidation Support in Local Language
+substantially revised by the authors before inclusion.
+GitHub Copilot (Microsoft Corporation / GitHub, Inc.) was used as an in-editor code com-
+pletion assistant during frontend development. All suggestions were reviewed and accepted or
+modified at the authors’ discretion.
+ChatGPT-4o (OpenAI, San Francisco, CA, USA) was used for exploratory research into avail-
+able Urdu TTS and STT APIs, and for drafting initial versions of the knowledge base ingestion
+pipeline. All outputs were independently verified against official API documentation before
+use.
+30

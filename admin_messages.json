@@ -59,7 +59,16 @@
     "contact": "03001234567",
     "message": "test",
     "read": false,
-    "action": "",
+    "action": "whatsapp",
     "created_at": "2026-04-22T05:09:50.043147+00:00"
+  },
+  {
+    "id": "6fa6c94bea3741fcb82281243062c386",
+    "email": "uzairg@gmail.com",
+    "contact": "03497730737",
+    "message": "AOA, What are the campus exchange policse>",
+    "read": false,
+    "action": "call",
+    "created_at": "2026-04-22T06:20:09.715843+00:00"
   }
 ]
