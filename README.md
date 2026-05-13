@@ -55,9 +55,9 @@ Every admission season, thousands of students call the same numbers, ask the sam
 
 ## Contributors
 
-- Uzair Ahmad
-- Arsalan Mateen
-- Muhammad Sohaib
+- [Uzair Ahmad](https://uzairkbrr.netlify.app/)
+- [Arsalan Mateen](https://www.linkedin.com/in/arsalanmateen/)
+- [Muhammad Sohaib](https://www.linkedin.com/in/sohaib-khan-5b6b1b255/)
 
 ## License
 
